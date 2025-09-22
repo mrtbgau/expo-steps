@@ -13,12 +13,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function RegisterScreen() {
+export default function LoginScreen() {
   const router = useRouter();
-
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Header title="Inscription" onPress={() => router.push("/")} />
+      <Header title="Connexion" onPress={() => router.push("/")} />
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -27,16 +26,18 @@ export default function RegisterScreen() {
           <Input placeholder="Email" />
           <Input placeholder="Mot de passe" />
           <Button
-            label="Créer un compte"
+            label="Se connecter"
             onPress={() => alert("Compte créé !")}
             variant="btnPrimary"
             color="white"
           />
         </View>
         <View style={styles.linkContainer}>
-          <Text style={styles.linkText}>Vous avez déjà un compte ? </Text>
-          <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
-            <Text style={styles.link}>Connectez-vous</Text>
+          <Text style={styles.linkText}>
+            {`Vous n'avez pas encore de compte ?`}{" "}
+          </Text>
+          <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
+            <Text style={styles.link}>Inscrivez-vous</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
