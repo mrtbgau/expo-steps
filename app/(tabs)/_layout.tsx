@@ -27,7 +27,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="trips"
         options={{
-          title: "Voyages",
+          title: "Mes voyages",
           tabBarIcon: ({ color }) => (
             <FontAwesome name="suitcase" size={24} color={color} />
           ),
