@@ -2,10 +2,10 @@ import BottomModal from "@/components/BottomModal";
 import Button from "@/components/Button";
 import Header from "@/components/Header";
 import Input from "@/components/Input";
+import Trip from "@/components/Trip";
 import React, { useRef, useState } from "react";
 import {
   Dimensions,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 const { width } = Dimensions.get("window");
 
-interface Trip {
+interface ITrip {
   id: number;
   title: string;
   duration: string;
@@ -28,7 +28,7 @@ export default function Tab() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const upcomingTrips: Trip[] = [
+  const upcomingTrips: ITrip[] = [
     {
       id: 1,
       title: "Paris Getaway",
@@ -55,7 +55,7 @@ export default function Tab() {
     },
   ];
 
-  const pastTrips: Trip[] = [
+  const pastTrips: ITrip[] = [
     {
       id: 4,
       title: "Rome Discovery",
@@ -82,15 +82,14 @@ export default function Tab() {
     },
   ];
 
-  const renderTripCard = (trip: Trip) => (
-    <TouchableOpacity key={trip.id} style={styles.tripCard} activeOpacity={0.7}>
-      <View style={styles.tripInfo}>
-        <Text style={styles.duration}>{trip.duration}</Text>
-        <Text style={styles.title}>{trip.title}</Text>
-        <Text style={styles.dates}>{trip.dates}</Text>
-      </View>
-      <Image source={{ uri: trip.image }} style={styles.tripImage} />
-    </TouchableOpacity>
+  const renderTripCard = (trip: ITrip) => (
+    <Trip
+      key={trip.id}
+      title={trip.title}
+      duration={trip.duration}
+      dates={trip.dates}
+      image={trip.image}
+    />
   );
 
   const handleTabChange = (tab: "past" | "upcoming") => {
@@ -251,46 +250,5 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 20,
-  },
-  tripCard: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "stretch",
-    marginHorizontal: 16,
-    marginVertical: 8,
-    gap: 16,
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 4,
-  },
-  tripInfo: {
-    flex: 2,
-    justifyContent: "center",
-    gap: 4,
-    paddingLeft: 4,
-  },
-  duration: {
-    fontSize: 14,
-    color: "#617989",
-    fontWeight: "400",
-    lineHeight: 16,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#111518",
-    lineHeight: 20,
-  },
-  dates: {
-    fontSize: 14,
-    color: "#617989",
-    fontWeight: "400",
-    lineHeight: 16,
-  },
-  tripImage: {
-    flex: 1,
-    aspectRatio: 16 / 9,
-    borderRadius: 12,
-    backgroundColor: "#f0f0f0",
   },
 });
