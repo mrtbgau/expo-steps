@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 type Props = {
   label: string;
   onPress: () => void;
-  variant: keyof typeof styles;
+  variant: keyof typeof variants;
   color: string;
 };
 
@@ -13,7 +13,7 @@ export default function Button({ label, onPress, variant, color }: Props) {
       <Pressable
         style={({ pressed }) => [
           styles.btn,
-          styles[variant],
+          variants[variant],
           pressed &&
             (variant === "btnPrimary"
               ? { backgroundColor: "#10ac84" }
@@ -21,7 +21,7 @@ export default function Button({ label, onPress, variant, color }: Props) {
         ]}
         onPress={onPress}
       >
-        <Text style={[labelStyles.buttonLabel, { color }]}>{label}</Text>
+        <Text style={[styles.btnLabel, { color }]}>{label}</Text>
       </Pressable>
     </View>
   );
@@ -43,6 +43,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     shadowColor: "#000",
   },
+  btnLabel: {
+    fontSize: 18,
+    fontWeight: "800",
+    fontFamily: "Poppins",
+  },
+});
+
+const variants = StyleSheet.create({
   btnPrimary: {
     backgroundColor: "#1dd1a1",
     shadowOffset: { width: 0, height: 4 },
@@ -59,13 +67,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
-  },
-});
-
-const labelStyles = StyleSheet.create({
-  buttonLabel: {
-    fontSize: 18,
-    fontWeight: "800",
-    fontFamily: "Poppins",
   },
 });
