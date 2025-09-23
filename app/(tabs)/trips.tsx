@@ -179,8 +179,17 @@ export default function Tab() {
         onClose={() => setIsModalVisible(false)}
       >
         <View style={styles.modalContent}>
-          <Input placeholder="Nom du voyage" />
-          <Input placeholder="Destination" />
+          <Input placeholder="Nom du voyage" variant="input" />
+          <Input placeholder="Destination" variant="input" />
+          <View style={dates.dateContainer}>
+            <View style={{ flex: 1 }}>
+              <Input placeholder="Date début" variant="input" type="date" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Input placeholder="Date fin" variant="input" type="date" />
+            </View>
+          </View>
+          <Input placeholder="Notes" variant="textarea" />
           <Button
             label="Créer un voyage"
             onPress={() => setIsModalVisible(false)}
@@ -192,6 +201,14 @@ export default function Tab() {
     </SafeAreaView>
   );
 }
+
+const dates = StyleSheet.create({
+  dateContainer: {
+    flexDirection: "row",
+    width: 320,
+    gap: 12,
+  },
+});
 
 const styles = StyleSheet.create({
   modalContent: {
