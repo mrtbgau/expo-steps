@@ -1,27 +1,13 @@
-import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
-
-SplashScreen.setOptions({
-  duration: 1000,
-  fade: true,
-});
-
-SplashScreen.preventAutoHideAsync();
+import { Slot } from "expo-router";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { AuthProvider } from "../contexts/AuthContext";
 
 export default function RootLayout() {
-  const [loaded] = useFonts({});
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hide();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
-  return <Stack />;
+  return (
+    <GestureHandlerRootView>
+      <AuthProvider>
+        <Slot />
+      </AuthProvider>
+    </GestureHandlerRootView>
+  );
 }
