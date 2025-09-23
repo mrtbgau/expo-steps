@@ -2,6 +2,7 @@ import BottomModal from "@/components/BottomModal";
 import Button from "@/components/Button";
 import Header from "@/components/Header";
 import Input from "@/components/Input";
+import ImagePicker from "@/components/PhotoPicker";
 import Trip from "@/components/Trip";
 import React, { useRef, useState } from "react";
 import {
@@ -189,6 +190,11 @@ export default function Tab() {
               <Input placeholder="Date fin" variant="input" type="date" />
             </View>
           </View>
+          <ImagePicker
+            onImageSelected={(imageUri) => {
+              console.log("Image sélectionnée:", imageUri);
+            }}
+          />
           <Input placeholder="Notes" variant="textarea" />
           <Button
             label="Créer un voyage"
