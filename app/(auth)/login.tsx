@@ -23,11 +23,11 @@ export default function LoginScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <View style={styles.form}>
-          <Input placeholder="Email" />
-          <Input placeholder="Mot de passe" />
+          <Input placeholder="Email" variant="input" />
+          <Input placeholder="Mot de passe" variant="input" />
           <Button
             label="Se connecter"
-            onPress={() => alert("Compte créé !")}
+            onPress={() => router.push("/(tabs)/trips")}
             variant="btnPrimary"
             color="white"
           />
