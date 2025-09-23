@@ -1,4 +1,7 @@
+import BottomModal from "@/components/BottomModal";
+import Button from "@/components/Button";
 import Header from "@/components/Header";
+import Input from "@/components/Input";
 import React, { useRef, useState } from "react";
 import {
   Dimensions,
@@ -10,7 +13,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 const { width } = Dimensions.get("window");
 
 interface Trip {
@@ -23,6 +25,7 @@ interface Trip {
 
 export default function Tab() {
   const [activeTab, setActiveTab] = useState<"past" | "upcoming">("past");
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const upcomingTrips: Trip[] = [
@@ -92,7 +95,7 @@ export default function Tab() {
 
   const handleTabChange = (tab: "past" | "upcoming") => {
     setActiveTab(tab);
-    const targetIndex = tab === "upcoming" ? 0 : 1;
+    const targetIndex = tab === "past" ? 0 : 1;
     scrollViewRef.current?.scrollTo({
       x: targetIndex * width,
       animated: true,
@@ -102,40 +105,23 @@ export default function Tab() {
   const handleScroll = (event: any) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const currentIndex = Math.round(offsetX / width);
-    const newTab = currentIndex === 0 ? "upcoming" : "past";
+    const newTab = currentIndex === 0 ? "past" : "upcoming";
 
     if (newTab !== activeTab) {
       setActiveTab(newTab);
     }
   };
 
-  const handleAddTrip = () => {
-    alert("Ajouter un nouveau voyage");
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <Header
         title="Mes Voyages"
-        onPress={handleAddTrip}
+        onPress={() => setIsModalVisible(true)}
         iconPosition="right"
         icon="add"
       />
       <View style={styles.tabsWrapper}>
         <View style={styles.tabsContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "upcoming" && styles.activeTab]}
-            onPress={() => handleTabChange("upcoming")}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === "upcoming" && styles.activeTabText,
-              ]}
-            >
-              Passés
-            </Text>
-          </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tab, activeTab === "past" && styles.activeTab]}
             onPress={() => handleTabChange("past")}
@@ -144,6 +130,19 @@ export default function Tab() {
               style={[
                 styles.tabText,
                 activeTab === "past" && styles.activeTabText,
+              ]}
+            >
+              Passés
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "upcoming" && styles.activeTab]}
+            onPress={() => handleTabChange("upcoming")}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "upcoming" && styles.activeTabText,
               ]}
             >
               A venir
@@ -176,11 +175,36 @@ export default function Tab() {
           </ScrollView>
         </View>
       </ScrollView>
+      <BottomModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalContent}>
+          <Input placeholder="Nom du voyage" />
+          <Input placeholder="Destination" />
+          <Button
+            label="Créer un voyage"
+            onPress={() => setIsModalVisible(false)}
+            variant="btnPrimary"
+            color="white"
+          />
+        </View>
+      </BottomModal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  modalContent: {
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
+  },
+  flexInput: {
+    flex: 1,
+    minWidth: 160,
+  },
   safeArea: {
     flex: 1,
     backgroundColor: "white",
