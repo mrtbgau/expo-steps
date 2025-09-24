@@ -49,7 +49,6 @@ class DatabaseService {
     console.log("password type:", typeof password, "length:", password?.length);
 
     try {
-      // Validate inputs
       if (!email || typeof email !== "string") {
         throw new Error("Email invalide");
       }
@@ -64,13 +63,11 @@ class DatabaseService {
 
       const normalizedEmail = email.toLowerCase().trim();
 
-      // Check if user already exists
       const existingUser = await this.getUserByEmail(normalizedEmail);
       if (existingUser) {
         throw new Error("Un compte avec cet email existe déjà");
       }
 
-      // Use synchronous bcrypt (more reliable in React Native)
       console.log("Hashing password...");
       const salt = bcrypt.genSaltSync(10);
       const hashedPassword = bcrypt.hashSync(password, salt);
@@ -131,7 +128,6 @@ class DatabaseService {
     }
 
     console.log("Comparing passwords...");
-    // Use synchronous compare
     const isValid = bcrypt.compareSync(password, user.password);
     console.log("Password comparison result:", isValid);
 
@@ -141,6 +137,34 @@ class DatabaseService {
 
     const { password: _, ...userWithoutPassword } = user;
     return userWithoutPassword;
+  }
+
+  async deleteUser(email: string): Promise<boolean> {
+    await this.init();
+    if (!this.db) return false;
+
+    if (!email || typeof email !== "string") {
+      throw new Error("Email invalide");
+    }
+
+    try {
+      const normalizedEmail = email.toLowerCase().trim();
+
+      const user = await this.getUserByEmail(normalizedEmail);
+      if (!user) {
+        throw new Error("Utilisateur introuvable");
+      }
+
+      const result = await this.db.runAsync(
+        "DELETE FROM users WHERE email = ?",
+        [normalizedEmail]
+      );
+
+      return result.changes > 0;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      throw error;
+    }
   }
 }
 
