@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -81,8 +82,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await SecureStore.deleteItemAsync(USER_TOKEN_KEY);
   };
 
+  const deleteAccount = async () => {
+    if (!user?.email) {
+      throw new Error("Aucun utilisateur connecté");
+    }
+
+    setIsLoading(true);
+    try {
+      await databaseService.deleteUser(user.email);
+      setUser(null);
+      await SecureStore.deleteItemAsync(USER_TOKEN_KEY);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );
