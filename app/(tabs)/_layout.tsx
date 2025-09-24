@@ -1,4 +1,4 @@
-import { Feather, FontAwesome } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
 export default function TabLayout() {
@@ -29,7 +29,7 @@ export default function TabLayout() {
         options={{
           title: "Mes voyages",
           tabBarIcon: ({ color }) => (
-            <FontAwesome name="suitcase" size={24} color={color} />
+            <Ionicons name="briefcase-outline" size={24} color={color} />
           ),
         }}
       />
@@ -38,16 +38,16 @@ export default function TabLayout() {
         options={{
           title: "Carte",
           tabBarIcon: ({ color }) => (
-            <Feather name="map" size={24} color={color} />
+            <Ionicons name="map-outline" size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profil",
+          title: "Mon profil",
           tabBarIcon: ({ color }) => (
-            <Feather name="user" size={24} color={color} />
+            <Ionicons name="person-outline" size={24} color={color} />
           ),
         }}
       />
