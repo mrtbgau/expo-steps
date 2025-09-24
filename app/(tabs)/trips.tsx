@@ -2,6 +2,7 @@ import BottomModal from "@/components/BottomModal";
 import Button from "@/components/Button";
 import Header from "@/components/Header";
 import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
 import ImagePicker from "@/components/PhotoPicker";
 import Trip from "@/components/Trip";
 import React, { useRef, useState } from "react";
@@ -195,7 +196,7 @@ export default function Tab() {
               console.log("Image sélectionnée:", imageUri);
             }}
           />
-          <Input placeholder="Notes" variant="textarea" />
+          <Textarea placeholder="Notes" />
           <Button
             label="Créer un voyage"
             onPress={() => setIsModalVisible(false)}
