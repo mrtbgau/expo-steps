@@ -16,12 +16,24 @@ export interface User {
   created_at: string;
 }
 
+export interface Trip {
+  id: number;
+  user_id: number;
+  title: string;
+  destination: string;
+  start_date: string;
+  end_date: string;
+  image_uri: string;
+  notes?: string;
+  created_at: string;
+}
+
 class DatabaseService {
   private db: SQLite.SQLiteDatabase | null = null;
 
   async init() {
     if (!this.db) {
-      this.db = await SQLite.openDatabaseAsync("auth.db");
+      this.db = await SQLite.openDatabaseAsync("sqlite.db");
       await this.createTables();
     }
     return this.db;
@@ -36,6 +48,19 @@ class DatabaseService {
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS trips (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        destination TEXT NOT NULL,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        image_uri TEXT,
+        notes TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
       );
     `);
   }
@@ -163,6 +188,136 @@ class DatabaseService {
       return result.changes > 0;
     } catch (error) {
       console.error("Error deleting user:", error);
+      throw error;
+    }
+  }
+
+  async createTrip(
+    userId: number,
+    title: string,
+    destination: string,
+    startDate: string,
+    endDate: string,
+    imageUri: string,
+    notes?: string
+  ): Promise<Trip | null> {
+    await this.init();
+    if (!this.db) return null;
+
+    try {
+      if (!title || !destination || !startDate || !endDate) {
+        throw new Error("Tous les champs obligatoires doivent être remplis");
+      }
+
+      const result = await this.db.runAsync(
+        "INSERT INTO trips (user_id, title, destination, start_date, end_date, image_uri, notes) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [
+          userId,
+          title,
+          destination,
+          startDate,
+          endDate,
+          imageUri,
+          notes || null,
+        ]
+      );
+
+      const trip = await this.db.getFirstAsync<Trip>(
+        "SELECT * FROM trips WHERE id = ?",
+        [result.lastInsertRowId]
+      );
+
+      return trip;
+    } catch (error) {
+      console.error("Error creating trip:", error);
+      throw new Error("Erreur lors de la création du voyage");
+    }
+  }
+
+  async getTrips(userId: number): Promise<Trip[]> {
+    await this.init();
+    if (!this.db) return [];
+
+    try {
+      const trips = await this.db.getAllAsync<Trip>(
+        "SELECT * FROM trips WHERE user_id = ? ORDER BY start_date DESC",
+        [userId]
+      );
+
+      return trips;
+    } catch (error) {
+      console.error("Error getting trips:", error);
+      return [];
+    }
+  }
+
+  async getTripById(tripId: number): Promise<Trip | null> {
+    await this.init();
+    if (!this.db) return null;
+
+    try {
+      const trip = await this.db.getFirstAsync<Trip>(
+        "SELECT * FROM trips WHERE id = ?",
+        [tripId]
+      );
+
+      return trip;
+    } catch (error) {
+      console.error("Error getting trip:", error);
+      return null;
+    }
+  }
+
+  async updateTrip(
+    tripId: number,
+    title: string,
+    destination: string,
+    startDate: string,
+    endDate: string,
+    imageUri: string,
+    notes?: string
+  ): Promise<Trip | null> {
+    await this.init();
+    if (!this.db) return null;
+
+    try {
+      if (!title || !destination || !startDate || !endDate) {
+        throw new Error("Tous les champs obligatoires doivent être remplis");
+      }
+
+      await this.db.runAsync(
+        "UPDATE trips SET title = ?, destination = ?, start_date = ?, end_date = ?, image_uri = ?, notes = ? WHERE id = ?",
+        [
+          title,
+          destination,
+          startDate,
+          endDate,
+          imageUri,
+          notes || null,
+          tripId,
+        ]
+      );
+
+      const trip = await this.getTripById(tripId);
+      return trip;
+    } catch (error) {
+      console.error("Error updating trip:", error);
+      throw new Error("Erreur lors de la mise à jour du voyage");
+    }
+  }
+
+  async deleteTrip(tripId: number): Promise<boolean> {
+    await this.init();
+    if (!this.db) return false;
+
+    try {
+      const result = await this.db.runAsync("DELETE FROM trips WHERE id = ?", [
+        tripId,
+      ]);
+
+      return result.changes > 0;
+    } catch (error) {
+      console.error("Error deleting trip:", error);
       throw error;
     }
   }
