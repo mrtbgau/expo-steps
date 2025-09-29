@@ -12,7 +12,7 @@ Expo-steps is a [Polarsteps](https://www.polarsteps.com/) lookalike.
 - 🔗 Share your trips via a link or invitation
 - 📶 Use the app offline while traveling
 
-## Core features
+## 🧩 Core features
 
 - 🔑 Authentication
 - 🧭 Trip management
