@@ -5,7 +5,8 @@ import Input from "@/components/Input";
 import Textarea from "@/components/Textarea";
 import ImagePicker from "@/components/PhotoPicker";
 import Trip from "@/components/Trip";
-import React, { useRef, useState } from "react";
+import { useTrips } from "@/contexts/TripContext";
+import React, { useRef, useState, useMemo } from "react";
 import {
   Dimensions,
   ScrollView,
@@ -13,84 +14,132 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 const { width } = Dimensions.get("window");
-
-interface ITrip {
-  id: number;
-  title: string;
-  duration: string;
-  dates: string;
-  image: string;
-}
 
 export default function Tab() {
   const [activeTab, setActiveTab] = useState<"past" | "upcoming">("past");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const { trips, createTrip, isLoading } = useTrips();
 
-  const upcomingTrips: ITrip[] = [
-    {
-      id: 1,
-      title: "Paris Getaway",
-      duration: "3 days",
-      dates: "Oct 12 - Oct 15",
-      image:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuA1LUgr_biGU-LZJCFaqyFo9WayPns6lJdwO1xRIYSTomHLAj5sxWReal7HLPtWC1tQU1x_sZoJEi6J0dMlBCnLEWhFLCOn8BYUrLvl4zYxLHqx1Tz_Lz_afUOappiacJkOyL_5PpEgCYC6jpR40_TnLsB8mt81VKKmsLQasO0bHB1N4LQmns1t8j2ln9RVRXf-xQqstK137A_k6o9sCFGceqd4KfG-qJaGOOVNGZT41pwp499leSD9chJv6SWMxMNFpfbh82Xfo04",
-    },
-    {
-      id: 2,
-      title: "London Adventure",
-      duration: "5 days",
-      dates: "Nov 20 - Nov 25",
-      image:
-        "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&h=300&fit=crop",
-    },
-    {
-      id: 3,
-      title: "Tokyo Discovery",
-      duration: "7 days",
-      dates: "Dec 5 - Dec 12",
-      image:
-        "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&h=300&fit=crop",
-    },
-  ];
+  // Form state
+  const [title, setTitle] = useState("");
+  const [destination, setDestination] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [notes, setNotes] = useState("");
+  const [errors, setErrors] = useState({
+    title: "",
+    destination: "",
+    startDate: "",
+    endDate: "",
+  });
 
-  const pastTrips: ITrip[] = [
-    {
-      id: 4,
-      title: "Rome Discovery",
-      duration: "4 days",
-      dates: "Aug 15 - Aug 19",
-      image:
-        "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&h=300&fit=crop",
-    },
-    {
-      id: 5,
-      title: "Barcelona Escape",
-      duration: "6 days",
-      dates: "Jul 5 - Jul 11",
-      image:
-        "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400&h=300&fit=crop",
-    },
-    {
-      id: 6,
-      title: "Amsterdam Weekend",
-      duration: "3 days",
-      dates: "Jun 20 - Jun 23",
-      image:
-        "https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=400&h=300&fit=crop",
-    },
-  ];
+  // Filter trips into past and upcoming based on end date
+  const { pastTrips, upcomingTrips } = useMemo(() => {
+    const now = new Date();
+    const past = trips.filter((trip) => new Date(trip.end_date) < now);
+    const upcoming = trips.filter((trip) => new Date(trip.end_date) >= now);
+    return { pastTrips: past, upcomingTrips: upcoming };
+  }, [trips]);
 
-  const renderTripCard = (trip: ITrip) => (
+  // Helper functions
+  const calculateDuration = (start: string, end: string): string => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return `${diffDays} jour${diffDays > 1 ? "s" : ""}`;
+  };
+
+  const formatDateRange = (start: string, end: string): string => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const options: Intl.DateTimeFormatOptions = {
+      month: "short",
+      day: "numeric",
+    };
+    return `${startDate.toLocaleDateString("fr-FR", options)} - ${endDate.toLocaleDateString("fr-FR", options)}`;
+  };
+
+  const resetForm = () => {
+    setTitle("");
+    setDestination("");
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setImageUri(null);
+    setNotes("");
+    setErrors({ title: "", destination: "", startDate: "", endDate: "" });
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors = {
+      title: "",
+      destination: "",
+      startDate: "",
+      endDate: "",
+    };
+
+    if (!title.trim()) {
+      newErrors.title = "Le nom du voyage est requis";
+    }
+
+    if (!destination.trim()) {
+      newErrors.destination = "La destination est requise";
+    }
+
+    if (!startDate) {
+      newErrors.startDate = "La date de début est requise";
+    }
+
+    if (!endDate) {
+      newErrors.endDate = "La date de fin est requise";
+    }
+
+    if (startDate && endDate && startDate > endDate) {
+      newErrors.endDate = "La date de fin doit être après la date de début";
+    }
+
+    setErrors(newErrors);
+    return !Object.values(newErrors).some((error) => error !== "");
+  };
+
+  const handleCreateTrip = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      await createTrip(
+        title,
+        destination,
+        startDate!,
+        endDate!,
+        imageUri,
+        notes || undefined
+      );
+      setIsModalVisible(false);
+      resetForm();
+      Alert.alert("Succès", "Voyage créé avec succès!");
+    } catch (error) {
+      Alert.alert(
+        "Erreur",
+        error instanceof Error ? error.message : "Erreur lors de la création du voyage"
+      );
+    }
+  };
+
+  const renderTripCard = (trip: typeof trips[0]) => (
     <Trip
       key={trip.id}
       title={trip.title}
-      duration={trip.duration}
-      dates={trip.dates}
-      image={trip.image}
+      duration={calculateDuration(trip.start_date, trip.end_date)}
+      dates={formatDateRange(trip.start_date, trip.end_date)}
+      image={trip.image_uri || "https://via.placeholder.com/400x300"}
     />
   );
 
@@ -178,30 +227,64 @@ export default function Tab() {
       </ScrollView>
       <BottomModal
         visible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
+        onClose={() => {
+          setIsModalVisible(false);
+          resetForm();
+        }}
       >
         <View style={styles.modalContent}>
-          <Input placeholder="Nom du voyage" variant="input" />
-          <Input placeholder="Destination" variant="input" />
+          <Input
+            placeholder="Nom du voyage"
+            variant="input"
+            value={title}
+            onChangeText={setTitle}
+            error={errors.title}
+          />
+          <Input
+            placeholder="Destination"
+            variant="input"
+            value={destination}
+            onChangeText={setDestination}
+            error={errors.destination}
+          />
           <View style={dates.dateContainer}>
             <View style={{ flex: 1 }}>
-              <Input placeholder="Date début" variant="input" type="date" />
+              <Input
+                placeholder="Date début"
+                variant="input"
+                type="date"
+                value={startDate}
+                onDateChange={setStartDate}
+                error={errors.startDate}
+              />
             </View>
             <View style={{ flex: 1 }}>
-              <Input placeholder="Date fin" variant="input" type="date" />
+              <Input
+                placeholder="Date fin"
+                variant="input"
+                type="date"
+                value={endDate}
+                onDateChange={setEndDate}
+                error={errors.endDate}
+              />
             </View>
           </View>
           <ImagePicker
-            onImageSelected={(imageUri) => {
-              console.log("Image sélectionnée:", imageUri);
+            onImageSelected={(uri) => {
+              setImageUri(uri);
             }}
           />
-          <Textarea placeholder="Notes" />
+          <Textarea
+            placeholder="Notes (optionnel)"
+            value={notes}
+            onChangeText={setNotes}
+          />
           <Button
-            label="Créer un voyage"
-            onPress={() => setIsModalVisible(false)}
+            label={isLoading ? "Création..." : "Créer un voyage"}
+            onPress={handleCreateTrip}
             variant="btnPrimary"
             color="white"
+            disabled={isLoading}
           />
         </View>
       </BottomModal>
