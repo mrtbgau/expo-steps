@@ -23,9 +23,10 @@ export interface Trip {
   destination: string;
   start_date: string;
   end_date: string;
-  image_uri: string;
-  notes?: string;
+  image_uri: string | null;
+  notes: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 class DatabaseService {
@@ -60,6 +61,7 @@ class DatabaseService {
         image_uri TEXT,
         notes TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
       );
     `);
@@ -198,7 +200,7 @@ class DatabaseService {
     destination: string,
     startDate: string,
     endDate: string,
-    imageUri: string,
+    imageUri: string | null,
     notes?: string
   ): Promise<Trip | null> {
     await this.init();
@@ -211,15 +213,7 @@ class DatabaseService {
 
       const result = await this.db.runAsync(
         "INSERT INTO trips (user_id, title, destination, start_date, end_date, image_uri, notes) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        [
-          userId,
-          title,
-          destination,
-          startDate,
-          endDate,
-          imageUri,
-          notes || null,
-        ]
+        [userId, title, destination, startDate, endDate, imageUri, notes || null]
       );
 
       const trip = await this.db.getFirstAsync<Trip>(
@@ -251,30 +245,13 @@ class DatabaseService {
     }
   }
 
-  async getTripById(tripId: number): Promise<Trip | null> {
-    await this.init();
-    if (!this.db) return null;
-
-    try {
-      const trip = await this.db.getFirstAsync<Trip>(
-        "SELECT * FROM trips WHERE id = ?",
-        [tripId]
-      );
-
-      return trip;
-    } catch (error) {
-      console.error("Error getting trip:", error);
-      return null;
-    }
-  }
-
   async updateTrip(
     tripId: number,
     title: string,
     destination: string,
     startDate: string,
     endDate: string,
-    imageUri: string,
+    imageUri: string | null,
     notes?: string
   ): Promise<Trip | null> {
     await this.init();
@@ -286,19 +263,15 @@ class DatabaseService {
       }
 
       await this.db.runAsync(
-        "UPDATE trips SET title = ?, destination = ?, start_date = ?, end_date = ?, image_uri = ?, notes = ? WHERE id = ?",
-        [
-          title,
-          destination,
-          startDate,
-          endDate,
-          imageUri,
-          notes || null,
-          tripId,
-        ]
+        "UPDATE trips SET title = ?, destination = ?, start_date = ?, end_date = ?, image_uri = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+        [title, destination, startDate, endDate, imageUri, notes || null, tripId]
       );
 
-      const trip = await this.getTripById(tripId);
+      const trip = await this.db.getFirstAsync<Trip>(
+        "SELECT * FROM trips WHERE id = ?",
+        [tripId]
+      );
+
       return trip;
     } catch (error) {
       console.error("Error updating trip:", error);
