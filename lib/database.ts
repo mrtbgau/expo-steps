@@ -20,7 +20,6 @@ export interface Trip {
   id: number;
   user_id: number;
   title: string;
-  destination: string;
   start_date: string;
   end_date: string;
   image_uri: string | null;
@@ -34,7 +33,7 @@ class DatabaseService {
 
   async init() {
     if (!this.db) {
-      this.db = await SQLite.openDatabaseAsync("sqlite.db");
+      this.db = await SQLite.openDatabaseAsync("tripFlow.db");
       await this.createTables();
     }
     return this.db;
@@ -55,7 +54,6 @@ class DatabaseService {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         title TEXT NOT NULL,
-        destination TEXT NOT NULL,
         start_date TEXT NOT NULL,
         end_date TEXT NOT NULL,
         image_uri TEXT,
@@ -197,7 +195,6 @@ class DatabaseService {
   async createTrip(
     userId: number,
     title: string,
-    destination: string,
     startDate: string,
     endDate: string,
     imageUri: string | null,
@@ -207,13 +204,13 @@ class DatabaseService {
     if (!this.db) return null;
 
     try {
-      if (!title || !destination || !startDate || !endDate) {
+      if (!title || !startDate || !endDate) {
         throw new Error("Tous les champs obligatoires doivent être remplis");
       }
 
       const result = await this.db.runAsync(
-        "INSERT INTO trips (user_id, title, destination, start_date, end_date, image_uri, notes) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        [userId, title, destination, startDate, endDate, imageUri, notes || null]
+        "INSERT INTO trips (user_id, title, start_date, end_date, image_uri, notes) VALUES (?, ?, ?, ?, ?, ?)",
+        [userId, title, startDate, endDate, imageUri, notes || null]
       );
 
       const trip = await this.db.getFirstAsync<Trip>(
@@ -248,7 +245,6 @@ class DatabaseService {
   async updateTrip(
     tripId: number,
     title: string,
-    destination: string,
     startDate: string,
     endDate: string,
     imageUri: string | null,
@@ -258,13 +254,13 @@ class DatabaseService {
     if (!this.db) return null;
 
     try {
-      if (!title || !destination || !startDate || !endDate) {
+      if (!title || !startDate || !endDate) {
         throw new Error("Tous les champs obligatoires doivent être remplis");
       }
 
       await this.db.runAsync(
-        "UPDATE trips SET title = ?, destination = ?, start_date = ?, end_date = ?, image_uri = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-        [title, destination, startDate, endDate, imageUri, notes || null, tripId]
+        "UPDATE trips SET title = ?, start_date = ?, end_date = ?, image_uri = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+        [title, startDate, endDate, imageUri, notes || null, tripId]
       );
 
       const trip = await this.db.getFirstAsync<Trip>(
