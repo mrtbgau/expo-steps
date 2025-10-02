@@ -7,7 +7,6 @@ interface TripContextType {
   isLoading: boolean;
   createTrip: (
     title: string,
-    destination: string,
     startDate: Date,
     endDate: Date,
     imageUri: string | null,
@@ -16,7 +15,6 @@ interface TripContextType {
   updateTrip: (
     tripId: number,
     title: string,
-    destination: string,
     startDate: Date,
     endDate: Date,
     imageUri: string | null,
@@ -57,7 +55,6 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
 
   const createTrip = async (
     title: string,
-    destination: string,
     startDate: Date,
     endDate: Date,
     imageUri: string | null,
@@ -72,7 +69,6 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
       const newTrip = await databaseService.createTrip(
         user.id,
         title,
-        destination,
         startDate.toISOString(),
         endDate.toISOString(),
         imageUri,
@@ -95,7 +91,6 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
   const updateTrip = async (
     tripId: number,
     title: string,
-    destination: string,
     startDate: Date,
     endDate: Date,
     imageUri: string | null,
@@ -106,7 +101,6 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
       const updatedTrip = await databaseService.updateTrip(
         tripId,
         title,
-        destination,
         startDate.toISOString(),
         endDate.toISOString(),
         imageUri,
