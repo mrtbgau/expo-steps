@@ -5,11 +5,22 @@ type Props = {
   duration: string;
   dates: string;
   image: string;
+  onPress?: () => void;
 };
 
-export default function Trip({ title, duration, dates, image }: Props) {
+export default function Trip({
+  title,
+  duration,
+  dates,
+  image,
+  onPress,
+}: Props) {
   return (
-    <TouchableOpacity style={styles.tripCard} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.tripCard}
+      activeOpacity={0.7}
+      onPress={onPress}
+    >
       <View style={styles.tripInfo}>
         <Text style={styles.duration}>{duration}</Text>
         <Text style={styles.title}>{title}</Text>
