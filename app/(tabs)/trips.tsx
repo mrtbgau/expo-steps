@@ -6,6 +6,7 @@ import Textarea from "@/components/Textarea";
 import ImagePicker from "@/components/PhotoPicker";
 import Trip from "@/components/Trip";
 import { useTrips } from "@/contexts/TripContext";
+import { router } from "expo-router";
 import React, { useRef, useState, useMemo } from "react";
 import {
   Dimensions,
@@ -122,13 +123,15 @@ export default function Tab() {
         imageUri,
         notes || undefined
       );
+      Alert.alert("Succès", "Voyage créé avec succès!");
       setIsModalVisible(false);
       resetForm();
-      Alert.alert("Succès", "Voyage créé avec succès!");
     } catch (error) {
       Alert.alert(
         "Erreur",
-        error instanceof Error ? error.message : "Erreur lors de la création du voyage"
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de la création du voyage"
       );
     }
   };
@@ -140,6 +143,7 @@ export default function Tab() {
       duration={calculateDuration(trip.start_date, trip.end_date)}
       dates={formatDateRange(trip.start_date, trip.end_date)}
       image={trip.image_uri || "https://via.placeholder.com/400x300"}
+      onPress={() => router.push(`/trip-details?id=${trip.id}`)}
     />
   );
 
