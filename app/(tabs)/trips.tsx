@@ -2,20 +2,20 @@ import BottomModal from "@/components/BottomModal";
 import Button from "@/components/Button";
 import Header from "@/components/Header";
 import Input from "@/components/Input";
-import Textarea from "@/components/Textarea";
 import ImagePicker from "@/components/PhotoPicker";
+import Textarea from "@/components/Textarea";
 import Trip from "@/components/Trip";
 import { useTrips } from "@/contexts/TripContext";
 import { router } from "expo-router";
-import React, { useRef, useState, useMemo } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
+  Alert,
   Dimensions,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 const { width } = Dimensions.get("window");
@@ -28,14 +28,12 @@ export default function Tab() {
 
   // Form state
   const [title, setTitle] = useState("");
-  const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState({
     title: "",
-    destination: "",
     startDate: "",
     endDate: "",
   });
@@ -64,17 +62,19 @@ export default function Tab() {
       month: "short",
       day: "numeric",
     };
-    return `${startDate.toLocaleDateString("fr-FR", options)} - ${endDate.toLocaleDateString("fr-FR", options)}`;
+    return `${startDate.toLocaleDateString(
+      "fr-FR",
+      options
+    )} - ${endDate.toLocaleDateString("fr-FR", options)}`;
   };
 
   const resetForm = () => {
     setTitle("");
-    setDestination("");
     setStartDate(undefined);
     setEndDate(undefined);
     setImageUri(null);
     setNotes("");
-    setErrors({ title: "", destination: "", startDate: "", endDate: "" });
+    setErrors({ title: "", startDate: "", endDate: "" });
   };
 
   const validateForm = (): boolean => {
@@ -87,10 +87,6 @@ export default function Tab() {
 
     if (!title.trim()) {
       newErrors.title = "Le nom du voyage est requis";
-    }
-
-    if (!destination.trim()) {
-      newErrors.destination = "La destination est requise";
     }
 
     if (!startDate) {
@@ -117,7 +113,6 @@ export default function Tab() {
     try {
       await createTrip(
         title,
-        destination,
         startDate!,
         endDate!,
         imageUri,
@@ -136,7 +131,7 @@ export default function Tab() {
     }
   };
 
-  const renderTripCard = (trip: typeof trips[0]) => (
+  const renderTripCard = (trip: (typeof trips)[0]) => (
     <Trip
       key={trip.id}
       title={trip.title}
@@ -243,13 +238,6 @@ export default function Tab() {
             value={title}
             onChangeText={setTitle}
             error={errors.title}
-          />
-          <Input
-            placeholder="Destination"
-            variant="input"
-            value={destination}
-            onChangeText={setDestination}
-            error={errors.destination}
           />
           <View style={dates.dateContainer}>
             <View style={{ flex: 1 }}>
