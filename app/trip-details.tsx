@@ -1,18 +1,11 @@
 import Button from "@/components/Button";
 import Header from "@/components/Header";
 import { useTrips } from "@/contexts/TripContext";
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useState, useEffect } from "react";
-import {
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Trip } from "@/lib/database";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Alert, Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function TripDetails() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -63,7 +56,11 @@ export default function TripDetails() {
   if (!trip) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <Header title="Détails du voyage" onPress={() => router.back()} icon="arrow-back" />
+        <Header
+          title="Détails du voyage"
+          onPress={() => router.back()}
+          icon="arrow-back"
+        />
         <View style={styles.centerContainer}>
           <Text style={styles.errorText}>Voyage introuvable</Text>
         </View>
@@ -87,20 +84,28 @@ export default function TripDetails() {
       month: "long",
       day: "numeric",
     };
-    return `${startDate.toLocaleDateString("fr-FR", options)} - ${endDate.toLocaleDateString("fr-FR", options)}`;
+    return `${startDate.toLocaleDateString(
+      "fr-FR",
+      options
+    )} - ${endDate.toLocaleDateString("fr-FR", options)}`;
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Header title="Détails du voyage" onPress={() => router.back()} icon="arrow-back" />
+      <Header
+        title="Détails du voyage"
+        onPress={() => router.back()}
+        icon="arrow-back"
+      />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <Image
-          source={{ uri: trip.image_uri || "https://via.placeholder.com/400x300" }}
+          source={{
+            uri: trip.image_uri || "https://via.placeholder.com/400x300",
+          }}
           style={styles.image}
         />
         <View style={styles.content}>
           <Text style={styles.title}>{trip.title}</Text>
-          <Text style={styles.destination}>{trip.destination}</Text>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Durée:</Text>
             <Text style={styles.value}>
@@ -169,11 +174,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#111518",
     marginBottom: 8,
-  },
-  destination: {
-    fontSize: 18,
-    color: "#617989",
-    marginBottom: 24,
   },
   infoRow: {
     flexDirection: "row",
