@@ -9,12 +9,7 @@ type Props = {
   icon?: keyof typeof Ionicons.glyphMap;
 };
 
-export default function Header({
-  title,
-  onPress,
-  iconPosition = "left",
-  icon = "arrow-back",
-}: Props) {
+export default function Header({ title, onPress, iconPosition, icon }: Props) {
   const renderIcon = () => {
     if (!icon || !onPress) return null;
 
