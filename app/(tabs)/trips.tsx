@@ -1,3 +1,4 @@
+import AlertDialog from "@/components/AlertDialog";
 import BottomModal from "@/components/BottomModal";
 import Button from "@/components/Button";
 import Header from "@/components/Header";
@@ -6,10 +7,11 @@ import ImagePicker from "@/components/PhotoPicker";
 import Textarea from "@/components/Textarea";
 import Trip from "@/components/Trip";
 import { useTrips } from "@/contexts/TripContext";
-import { router } from "expo-router";
+import { Trip as TripType } from "@/lib/database";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useMemo, useRef, useState } from "react";
 import {
-  Alert,
   Dimensions,
   ScrollView,
   StyleSheet,
@@ -21,10 +23,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const { width } = Dimensions.get("window");
 
 export default function Tab() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"past" | "upcoming">("past");
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isTripDetailsModalVisible, setIsTripDetailsModalVisible] =
+    useState(false);
+  const [selectedTrip, setSelectedTrip] = useState<TripType | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const scrollViewRef = useRef<ScrollView>(null);
-  const { trips, createTrip, isLoading } = useTrips();
+  const { trips, createTrip, deleteTrip, isLoading } = useTrips();
 
   // Form state
   const [title, setTitle] = useState("");
@@ -118,16 +129,17 @@ export default function Tab() {
         imageUri,
         notes || undefined
       );
-      Alert.alert("Succès", "Voyage créé avec succès!");
+      setSuccessMessage("Voyage créé avec succès!");
+      setShowSuccessDialog(true);
       setIsModalVisible(false);
       resetForm();
     } catch (error) {
-      Alert.alert(
-        "Erreur",
+      setErrorMessage(
         error instanceof Error
           ? error.message
           : "Erreur lors de la création du voyage"
       );
+      setShowErrorDialog(true);
     }
   };
 
@@ -138,7 +150,7 @@ export default function Tab() {
       duration={calculateDuration(trip.start_date, trip.end_date)}
       dates={formatDateRange(trip.start_date, trip.end_date)}
       image={trip.image_uri || "https://via.placeholder.com/400x300"}
-      onPress={() => router.push(`/trip-details?id=${trip.id}`)}
+      onLongPress={() => handleTripPress(trip)}
     />
   );
 
@@ -159,6 +171,48 @@ export default function Tab() {
     if (newTab !== activeTab) {
       setActiveTab(newTab);
     }
+  };
+
+  const handleTripPress = (trip: TripType) => {
+    setSelectedTrip(trip);
+    setIsTripDetailsModalVisible(true);
+  };
+
+  const handleDelete = () => {
+    if (!selectedTrip) return;
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedTrip) return;
+
+    try {
+      await deleteTrip(selectedTrip.id);
+      setShowDeleteDialog(false);
+      setSuccessMessage("Voyage supprimé avec succès!");
+      setShowSuccessDialog(true);
+      setIsTripDetailsModalVisible(false);
+      setSelectedTrip(null);
+    } catch (error) {
+      setShowDeleteDialog(false);
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de la suppression du voyage"
+      );
+      setShowErrorDialog(true);
+    }
+  };
+
+  const handleEdit = () => {
+    if (!selectedTrip) return;
+    setIsTripDetailsModalVisible(false);
+    router.push(`/trip-edit?id=${selectedTrip.id}`);
+  };
+
+  const handleSharing = () => {
+    setSuccessMessage("Fonctionnalité de partage à venir");
+    setShowSuccessDialog(true);
   };
 
   return (
@@ -280,6 +334,72 @@ export default function Tab() {
           />
         </View>
       </BottomModal>
+      <BottomModal
+        visible={isTripDetailsModalVisible}
+        onClose={() => {
+          setIsTripDetailsModalVisible(false);
+          setSelectedTrip(null);
+        }}
+        enableDynamicSizing={true}
+      >
+        <View style={styles.tripDetailsContent}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleEdit}>
+            <Ionicons name="settings-outline" size={24} color="#111518" />
+            <Text style={styles.menuItemTitle}>Modifier ce voyage</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              setSuccessMessage("Fonctionnalité d'impression à venir");
+              setShowSuccessDialog(true);
+            }}
+          >
+            <Ionicons name="book-outline" size={24} color="#111518" />
+            <Text style={styles.menuItemTitle}>Imprimer un album</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} onPress={handleSharing}>
+            <Ionicons name="share-social-outline" size={24} color="#111518" />
+            <Text style={styles.menuItemTitle}>Partager le voyage</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
+            <Ionicons name="trash-outline" size={24} color="#e55039" />
+            <Text style={[styles.menuItemTitle, { color: "#e55039" }]}>
+              Supprimer ce voyage
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </BottomModal>
+
+      <AlertDialog
+        visible={showDeleteDialog}
+        title="Supprimer le voyage"
+        message={`Êtes-vous sûr de vouloir supprimer "${selectedTrip?.title}" ?`}
+        variant="danger"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        onConfirm={confirmDelete}
+        onCancel={() => setShowDeleteDialog(false)}
+      />
+
+      <AlertDialog
+        visible={showSuccessDialog}
+        title="Info"
+        message={successMessage}
+        confirmText="OK"
+        onConfirm={() => setShowSuccessDialog(false)}
+      />
+
+      <AlertDialog
+        visible={showErrorDialog}
+        title="Erreur"
+        message={errorMessage}
+        variant="danger"
+        confirmText="OK"
+        onConfirm={() => setShowErrorDialog(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -349,5 +469,29 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 20,
+  },
+  tripDetailsContent: {
+    flexDirection: "column",
+    paddingBottom: 20,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 4,
+    gap: 16,
+  },
+  menuItemContent: {
+    flex: 1,
+  },
+  menuItemTitle: {
+    fontSize: 16,
+    fontWeight: "400",
+    color: "#111518",
+  },
+  menuItemSubtitle: {
+    fontSize: 14,
+    color: "#617989",
+    marginTop: 2,
   },
 });
