@@ -7,7 +7,6 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 
 type Props = {
-  title: string;
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
@@ -16,7 +15,6 @@ type Props = {
 };
 
 export default function BottomModal({
-  title,
   visible,
   onClose,
   children,
