@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
@@ -12,12 +12,20 @@ import {
 
 interface ImagePickerComponentProps {
   onImageSelected?: (imageUri: string) => void;
+  initialImage?: string | null;
 }
 
 export default function PhotoPicker({
   onImageSelected,
+  initialImage,
 }: ImagePickerComponentProps) {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(
+    initialImage || null
+  );
+
+  useEffect(() => {
+    setSelectedImage(initialImage || null);
+  }, [initialImage]);
 
   const requestPermissions = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
