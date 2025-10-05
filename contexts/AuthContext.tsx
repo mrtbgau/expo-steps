@@ -1,6 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { databaseService, User } from "../lib/database";
+import { userService, User } from "../lib/database";
 
 interface AuthContextType {
   user: User | null;
@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const userEmail = await SecureStore.getItemAsync(USER_TOKEN_KEY);
       if (userEmail) {
-        const storedUser = await databaseService.getUserByEmail(userEmail);
+        const storedUser = await userService.getUserByEmail(userEmail);
         if (storedUser) {
           const { password, ...userWithoutPassword } = storedUser;
           setUser(userWithoutPassword);
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const authenticatedUser = await databaseService.verifyPassword(
+      const authenticatedUser = await userService.verifyPassword(
         email,
         password
       );
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const newUser = await databaseService.createUser(email, password);
+      const newUser = await userService.createUser(email, password);
       if (!newUser) {
         throw new Error("Failed to create user");
       }
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setIsLoading(true);
     try {
-      await databaseService.deleteUser(user.email);
+      await userService.deleteUser(user.email);
       setUser(null);
       await SecureStore.deleteItemAsync(USER_TOKEN_KEY);
     } catch (error) {

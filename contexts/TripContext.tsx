@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { databaseService, Trip } from "../lib/database";
+import { tripService, Trip } from "../lib/database";
 import { useAuth } from "./AuthContext";
 
 interface TripContextType {
@@ -44,7 +44,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
 
     setIsLoading(true);
     try {
-      const userTrips = await databaseService.getTrips(user.id);
+      const userTrips = await tripService.getTrips(user.id);
       setTrips(userTrips);
     } catch (error) {
       console.error("Error loading trips:", error);
@@ -66,7 +66,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
 
     setIsLoading(true);
     try {
-      const newTrip = await databaseService.createTrip(
+      const newTrip = await tripService.createTrip(
         user.id,
         title,
         startDate.toISOString(),
@@ -98,7 +98,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
   ): Promise<Trip | null> => {
     setIsLoading(true);
     try {
-      const updatedTrip = await databaseService.updateTrip(
+      const updatedTrip = await tripService.updateTrip(
         tripId,
         title,
         startDate.toISOString(),
@@ -125,7 +125,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
   const deleteTrip = async (tripId: number): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const success = await databaseService.deleteTrip(tripId);
+      const success = await tripService.deleteTrip(tripId);
 
       if (success) {
         setTrips((prevTrips) => prevTrips.filter((trip) => trip.id !== tripId));
