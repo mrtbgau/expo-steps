@@ -16,3 +16,19 @@ export interface Trip {
   created_at: string;
   updated_at: string;
 }
+
+export interface Stop {
+  id: number;
+  trip_id: number;
+  name: string;
+  latitude: number | null;
+  longitude: number | null;
+  start_date: string;
+  end_date: string;
+  description: string | null;
+  image_uri: string | null;
+  notes: string | null;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+}
