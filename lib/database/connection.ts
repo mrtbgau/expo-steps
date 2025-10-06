@@ -34,6 +34,23 @@ class DatabaseConnection {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
       );
+
+      CREATE TABLE IF NOT EXISTS stops (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        trip_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        latitude REAL,
+        longitude REAL,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        description TEXT,
+        image_uri TEXT,
+        notes TEXT,
+        order_index INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
+      );
     `);
   }
 
