@@ -5,7 +5,6 @@ import Header from "@/components/Header";
 import Input from "@/components/Input";
 import PhotoPicker from "@/components/PhotoPicker";
 import StopCard from "@/components/StopCard";
-import StopFormModal from "@/components/StopFormModal";
 import Textarea from "@/components/Textarea";
 import { useStops } from "@/contexts/StopContext";
 import { useTrips } from "@/contexts/TripContext";
@@ -450,31 +449,78 @@ export default function TripEdit() {
           resetStopForm();
         }}
       >
-        <StopFormModal
-          name={stopName}
-          setName={setStopName}
-          startDate={stopStartDate}
-          setStartDate={setStopStartDate}
-          endDate={stopEndDate}
-          setEndDate={setStopEndDate}
-          latitude={stopLatitude}
-          setLatitude={setStopLatitude}
-          longitude={stopLongitude}
-          setLongitude={setStopLongitude}
-          description={stopDescription}
-          setDescription={setStopDescription}
-          imageUri={stopImageUri}
-          setImageUri={setStopImageUri}
-          notes={stopNotes}
-          setNotes={setStopNotes}
-          onSubmit={handleCreateStop}
-          onCancel={() => {
-            setIsStopModalVisible(false);
-            resetStopForm();
-          }}
-          isLoading={stopLoading}
-          errors={stopErrors}
-        />
+        <View style={stopCreationModal.modalContent}>
+          <Input
+            placeholder="Nom de l'étape"
+            variant="input"
+            value={stopName}
+            onChangeText={setStopName}
+            error={stopErrors.name}
+          />
+          <View style={stopCreationModal.dateContainer}>
+            <View style={{ flex: 1 }}>
+              <Input
+                placeholder="Date début"
+                variant="input"
+                type="date"
+                value={stopStartDate}
+                onDateChange={setStopStartDate}
+                error={stopErrors.startDate}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Input
+                placeholder="Date fin"
+                variant="input"
+                type="date"
+                value={stopEndDate}
+                onDateChange={setStopEndDate}
+                error={stopErrors.endDate}
+              />
+            </View>
+          </View>
+          <View style={stopCreationModal.dateContainer}>
+            <View style={{ flex: 1 }}>
+              <Input
+                placeholder="Latitude (optionnel)"
+                variant="input"
+                value={stopLatitude}
+                onChangeText={setStopLatitude}
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Input
+                placeholder="Longitude (optionnel)"
+                variant="input"
+                value={stopLongitude}
+                onChangeText={setStopLongitude}
+                keyboardType="numeric"
+              />
+            </View>
+          </View>
+          <PhotoPicker
+            onImageSelected={(uri) => setStopImageUri(uri)}
+            initialImage={stopImageUri}
+          />
+          <Textarea
+            placeholder="Description (optionnel)"
+            value={stopDescription}
+            onChangeText={setStopDescription}
+          />
+          <Textarea
+            placeholder="Notes (optionnel)"
+            value={stopNotes}
+            onChangeText={setStopNotes}
+          />
+          <Button
+            label={stopLoading ? "Enregistrement..." : "Enregistrer"}
+            onPress={handleCreateStop}
+            variant="btnPrimary"
+            color="white"
+            disabled={stopLoading}
+          />
+        </View>
       </BottomModal>
 
       {/* Stop Actions Modal */}
@@ -536,6 +582,20 @@ export default function TripEdit() {
   );
 }
 
+const stopCreationModal = StyleSheet.create({
+  modalContent: {
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
+  },
+  dateContainer: {
+    flexDirection: "row",
+    width: 320,
+    gap: 12,
+  },
+});
+
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
@@ -570,6 +630,34 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     width: 320,
     gap: 12,
+  },
+  locationContainer: {
+    flexDirection: "row",
+    width: 320,
+    gap: 12,
+  },
+  modalContent: {
+    flex: 1,
+    maxHeight: 700,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#111518",
+    marginBottom: 24,
+    textAlign: "center",
+  },
+  modalScrollView: {
+    flex: 1,
+  },
+  modalScrollContent: {
+    paddingBottom: 16,
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 16,
+    justifyContent: "center",
   },
   stopsSection: {
     width: "100%",
