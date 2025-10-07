@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { stopService, Stop } from "../lib/database";
+import { Stop, stopService } from "../lib/database";
 
 interface StopContextType {
   stops: Stop[];
@@ -39,15 +39,7 @@ export function StopProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [currentTripId, setCurrentTripId] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (currentTripId) {
-      loadStops();
-    } else {
-      setStops([]);
-    }
-  }, [currentTripId]);
-
-  const loadStops = async () => {
+  const loadStops = React.useCallback(async () => {
     if (!currentTripId) return;
 
     setIsLoading(true);
@@ -59,7 +51,15 @@ export function StopProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentTripId]);
+
+  useEffect(() => {
+    if (currentTripId) {
+      loadStops();
+    } else {
+      setStops([]);
+    }
+  }, [currentTripId, loadStops]);
 
   const createStop = async (
     tripId: number,
