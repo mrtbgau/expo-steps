@@ -3,6 +3,7 @@ import BottomModal from "@/components/BottomModal";
 import Button from "@/components/Button";
 import Header from "@/components/Header";
 import Input from "@/components/Input";
+import LocationSearchInput from "@/components/LocationSearchInput";
 import PhotoPicker from "@/components/PhotoPicker";
 import StopCard from "@/components/StopCard";
 import Textarea from "@/components/Textarea";
@@ -57,8 +58,9 @@ export default function TripEdit() {
     undefined
   );
   const [stopEndDate, setStopEndDate] = useState<Date | undefined>(undefined);
-  const [stopLatitude, setStopLatitude] = useState("");
-  const [stopLongitude, setStopLongitude] = useState("");
+  const [stopLocation, setStopLocation] = useState("");
+  const [stopLatitude, setStopLatitude] = useState(0);
+  const [stopLongitude, setStopLongitude] = useState(0);
   const [stopImageUri, setStopImageUri] = useState<string | null>(null);
   const [stopNotes, setStopNotes] = useState("");
   const [stopErrors, setStopErrors] = useState({
@@ -144,8 +146,9 @@ export default function TripEdit() {
     setStopName("");
     setStopStartDate(undefined);
     setStopEndDate(undefined);
-    setStopLatitude("");
-    setStopLongitude("");
+    setStopLocation("");
+    setStopLatitude(0);
+    setStopLongitude(0);
     setStopImageUri(null);
     setStopNotes("");
     setStopErrors({ name: "", startDate: "", endDate: "" });
@@ -223,8 +226,8 @@ export default function TripEdit() {
     if (!trip || !validateStopForm()) return;
 
     try {
-      const lat = stopLatitude ? parseFloat(stopLatitude) : undefined;
-      const lng = stopLongitude ? parseFloat(stopLongitude) : undefined;
+      const lat = stopLatitude !== 0 ? stopLatitude : undefined;
+      const lng = stopLongitude !== 0 ? stopLongitude : undefined;
 
       await createStop(
         trip.id,
@@ -233,6 +236,7 @@ export default function TripEdit() {
         stopEndDate!,
         lat,
         lng,
+        undefined,
         stopImageUri || undefined,
         stopNotes || undefined
       );
@@ -476,26 +480,15 @@ export default function TripEdit() {
               />
             </View>
           </View>
-          <View style={stopCreationModal.dateContainer}>
-            <View style={{ flex: 1 }}>
-              <Input
-                placeholder="Latitude (optionnel)"
-                variant="input"
-                value={stopLatitude}
-                onChangeText={setStopLatitude}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Input
-                placeholder="Longitude (optionnel)"
-                variant="input"
-                value={stopLongitude}
-                onChangeText={setStopLongitude}
-                keyboardType="numeric"
-              />
-            </View>
-          </View>
+          <LocationSearchInput
+            placeholder="Rechercher un lieu (optionnel)"
+            onLocationSelected={(location, lat, lng) => {
+              setStopLocation(location);
+              setStopLatitude(lat);
+              setStopLongitude(lng);
+            }}
+            initialLocation={stopLocation}
+          />
           <PhotoPicker
             onImageSelected={(uri) => setStopImageUri(uri)}
             initialImage={stopImageUri}
