@@ -175,7 +175,7 @@ export default function LocationSearchInput({
           >
             {results.map((item, index) => (
               <TouchableOpacity
-                key={item.place_id}
+                key={`${item.place_id}-${item.lat}-${item.lon}-${index}`}
                 style={[
                   styles.resultItem,
                   index === results.length - 1 && styles.lastResultItem,
