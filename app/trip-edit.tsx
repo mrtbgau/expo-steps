@@ -59,7 +59,6 @@ export default function TripEdit() {
   const [stopEndDate, setStopEndDate] = useState<Date | undefined>(undefined);
   const [stopLatitude, setStopLatitude] = useState("");
   const [stopLongitude, setStopLongitude] = useState("");
-  const [stopDescription, setStopDescription] = useState("");
   const [stopImageUri, setStopImageUri] = useState<string | null>(null);
   const [stopNotes, setStopNotes] = useState("");
   const [stopErrors, setStopErrors] = useState({
@@ -147,7 +146,6 @@ export default function TripEdit() {
     setStopEndDate(undefined);
     setStopLatitude("");
     setStopLongitude("");
-    setStopDescription("");
     setStopImageUri(null);
     setStopNotes("");
     setStopErrors({ name: "", startDate: "", endDate: "" });
@@ -235,7 +233,6 @@ export default function TripEdit() {
         stopEndDate!,
         lat,
         lng,
-        stopDescription || undefined,
         stopImageUri || undefined,
         stopNotes || undefined
       );
@@ -502,11 +499,6 @@ export default function TripEdit() {
           <PhotoPicker
             onImageSelected={(uri) => setStopImageUri(uri)}
             initialImage={stopImageUri}
-          />
-          <Textarea
-            placeholder="Description (optionnel)"
-            value={stopDescription}
-            onChangeText={setStopDescription}
           />
           <Textarea
             placeholder="Notes (optionnel)"
