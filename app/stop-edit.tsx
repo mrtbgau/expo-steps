@@ -2,6 +2,7 @@ import AlertDialog from "@/components/AlertDialog";
 import Button from "@/components/Button";
 import Header from "@/components/Header";
 import Input from "@/components/Input";
+import LocationSearchInput from "@/components/LocationSearchInput";
 import PhotoPicker from "@/components/PhotoPicker";
 import Textarea from "@/components/Textarea";
 import { useStops } from "@/contexts/StopContext";
@@ -22,8 +23,9 @@ export default function StopEdit() {
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  const [stopLocation, setStopLocation] = useState("");
+  const [stopLatitude, setStopLatitude] = useState(0);
+  const [stopLongitude, setStopLongitude] = useState(0);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState({
@@ -44,8 +46,8 @@ export default function StopEdit() {
       setName(foundStop.name);
       setStartDate(new Date(foundStop.start_date));
       setEndDate(new Date(foundStop.end_date));
-      setLatitude(foundStop.latitude?.toString() || "");
-      setLongitude(foundStop.longitude?.toString() || "");
+      setStopLatitude(foundStop.latitude || 0);
+      setStopLongitude(foundStop.longitude || 0);
       setImageUri(foundStop.image_uri);
       setNotes(foundStop.notes || "");
 
@@ -131,8 +133,8 @@ export default function StopEdit() {
     if (!stop || !validateForm()) return;
 
     try {
-      const lat = latitude ? parseFloat(latitude) : undefined;
-      const lng = longitude ? parseFloat(longitude) : undefined;
+      const lat = stopLatitude !== 0 ? stopLatitude : undefined;
+      const lng = stopLongitude !== 0 ? stopLongitude : undefined;
 
       await updateStop(
         stop.id,
@@ -215,6 +217,15 @@ export default function StopEdit() {
                 />
               </View>
             </View>
+            <LocationSearchInput
+              placeholder="Rechercher un lieu (optionnel)"
+              onLocationSelected={(location, lat, lng) => {
+                setStopLocation(location);
+                setStopLatitude(lat);
+                setStopLongitude(lng);
+              }}
+              initialLocation={stopLocation}
+            />
             <PhotoPicker
               onImageSelected={(uri) => setImageUri(uri)}
               initialImage={imageUri}
