@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type Props = {
@@ -18,6 +19,44 @@ export default function StopCard({
   onPress,
   onLongPress,
 }: Props) {
+  const [displayLocation, setDisplayLocation] = useState<string | undefined>(
+    location
+  );
+
+  useEffect(() => {
+    if (!location) {
+      setDisplayLocation(undefined);
+      return;
+    }
+
+    const coordPattern = /^-?\d+\.\d+,\s*-?\d+\.\d+$/;
+    if (coordPattern.test(location)) {
+      const [lat, lon] = location.split(",").map((s) => s.trim());
+
+      fetch(`https://photon.komoot.io/reverse?lon=${lon}&lat=${lat}&lang=fr`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.features && data.features.length > 0) {
+            const props = data.features[0].properties;
+            const city = props.name || props.city;
+            const locationParts = [city, props.country].filter(Boolean);
+            if (locationParts.length > 0) {
+              setDisplayLocation(locationParts.join(", "));
+            } else {
+              setDisplayLocation(location);
+            }
+          } else {
+            setDisplayLocation(location);
+          }
+        })
+        .catch(() => {
+          setDisplayLocation(location);
+        });
+    } else {
+      setDisplayLocation(location);
+    }
+  }, [location]);
+
   return (
     <TouchableOpacity
       style={styles.stopCard}
@@ -35,7 +74,9 @@ export default function StopCard({
       <View style={styles.stopInfo}>
         <Text style={styles.name}>{name}</Text>
         <Text style={styles.dates}>{dates}</Text>
-        {location && <Text style={styles.location}>{location}</Text>}
+        {displayLocation && (
+          <Text style={styles.location}>{displayLocation}</Text>
+        )}
       </View>
     </TouchableOpacity>
   );
