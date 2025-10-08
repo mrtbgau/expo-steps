@@ -9,7 +9,6 @@ class StopService {
     endDate: string,
     latitude?: number,
     longitude?: number,
-    description?: string,
     imageUri?: string,
     notes?: string
   ): Promise<Stop | null> {
@@ -25,7 +24,7 @@ class StopService {
       const orderIndex = stops.length;
 
       const result = await db.runAsync(
-        "INSERT INTO stops (trip_id, name, latitude, longitude, start_date, end_date, description, image_uri, notes, order_index) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO stops (trip_id, name, latitude, longitude, start_date, end_date, image_uri, notes, order_index) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
           tripId,
           name,
@@ -33,7 +32,6 @@ class StopService {
           longitude || null,
           startDate,
           endDate,
-          description || null,
           imageUri || null,
           notes || null,
           orderIndex,
@@ -93,7 +91,6 @@ class StopService {
     endDate: string,
     latitude?: number,
     longitude?: number,
-    description?: string,
     imageUri?: string,
     notes?: string
   ): Promise<Stop | null> {
@@ -106,14 +103,13 @@ class StopService {
       }
 
       await db.runAsync(
-        "UPDATE stops SET name = ?, latitude = ?, longitude = ?, start_date = ?, end_date = ?, description = ?, image_uri = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+        "UPDATE stops SET name = ?, latitude = ?, longitude = ?, start_date = ?, end_date = ?, image_uri = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
         [
           name,
           latitude || null,
           longitude || null,
           startDate,
           endDate,
-          description || null,
           imageUri || null,
           notes || null,
           stopId,
