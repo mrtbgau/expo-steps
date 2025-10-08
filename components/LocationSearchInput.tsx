@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -72,7 +72,7 @@ export default function LocationSearchInput({
       const response = await fetch(
         `https://photon.komoot.io/api/?q=${encodeURIComponent(
           searchQuery
-        )}&limit=5`
+        )}&lang=fr`
       );
       const data = await response.json();
 
@@ -169,12 +169,17 @@ export default function LocationSearchInput({
 
       {showDropdown && results.length > 0 && (
         <View style={styles.dropdown}>
-          <FlatList
-            data={results}
-            keyExtractor={(item) => item.place_id.toString()}
-            renderItem={({ item }) => (
+          <ScrollView
+            nestedScrollEnabled={true}
+            showsVerticalScrollIndicator={false}
+          >
+            {results.map((item, index) => (
               <TouchableOpacity
-                style={styles.resultItem}
+                key={item.place_id}
+                style={[
+                  styles.resultItem,
+                  index === results.length - 1 && styles.lastResultItem,
+                ]}
                 onPress={() => handleSelectLocation(item)}
                 activeOpacity={0.7}
               >
@@ -195,10 +200,8 @@ export default function LocationSearchInput({
                   )}
                 </View>
               </TouchableOpacity>
-            )}
-            scrollEnabled={false}
-            nestedScrollEnabled={false}
-          />
+            ))}
+          </ScrollView>
         </View>
       )}
     </View>
@@ -276,6 +279,9 @@ const styles = StyleSheet.create({
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f3f4",
+  },
+  lastResultItem: {
+    borderBottomWidth: 0,
   },
   resultIcon: {
     marginRight: 12,
