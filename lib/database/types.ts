@@ -25,7 +25,6 @@ export interface Stop {
   longitude: number | null;
   start_date: string;
   end_date: string;
-  description: string | null;
   image_uri: string | null;
   notes: string | null;
   order_index: number;
