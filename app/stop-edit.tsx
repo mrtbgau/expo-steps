@@ -56,7 +56,7 @@ export default function StopEdit() {
 
       if (foundStop.latitude && foundStop.longitude) {
         fetch(
-          `https://photon.komoot.io/reverse?lon=${foundStop.longitude}&lat=${foundStop.latitude}`
+          `https://photon.komoot.io/reverse?lon=${foundStop.longitude}&lat=${foundStop.latitude}&lang=fr`
         )
           .then((response) => response.json())
           .then((data) => {
