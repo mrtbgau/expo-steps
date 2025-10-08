@@ -41,9 +41,12 @@ export default function LocationSearchInput({
   const [results, setResults] = useState<LocationResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(
-    null
-  );
+
+  useEffect(() => {
+    if (initialLocation !== undefined) {
+      setQuery(initialLocation);
+    }
+  }, [initialLocation]);
 
   useEffect(() => {
     if (query.length < 3) {
@@ -52,20 +55,12 @@ export default function LocationSearchInput({
       return;
     }
 
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-
     const timer = setTimeout(() => {
       searchLocation(query);
     }, 300);
 
-    setDebounceTimer(timer);
-
     return () => {
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
-      }
+      clearTimeout(timer);
     };
   }, [query]);
 
@@ -75,7 +70,9 @@ export default function LocationSearchInput({
     setIsLoading(true);
     try {
       const response = await fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(searchQuery)}&limit=5`
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(
+          searchQuery
+        )}&limit=5`
       );
       const data = await response.json();
 
