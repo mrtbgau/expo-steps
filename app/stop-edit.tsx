@@ -53,6 +53,30 @@ export default function StopEdit() {
 
       const foundTrip = trips.find((t) => t.id === foundStop.trip_id);
       setTrip(foundTrip || null);
+
+      if (foundStop.latitude && foundStop.longitude) {
+        fetch(
+          `https://photon.komoot.io/reverse?lon=${foundStop.longitude}&lat=${foundStop.latitude}`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.features && data.features.length > 0) {
+              const feature = data.features[0];
+              const props = feature.properties;
+              console.log("Reverse geocoding data:", props);
+
+              const locationParts = [
+                props.name || props.city,
+                props.state,
+                props.country,
+              ].filter(Boolean);
+              setStopLocation(locationParts.join(", "));
+            }
+          })
+          .catch((error) => {
+            console.error("Error reverse geocoding:", error);
+          });
+      }
     }
   }, [id, stops, trips]);
 
