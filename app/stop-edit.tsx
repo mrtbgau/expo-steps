@@ -24,7 +24,6 @@ export default function StopEdit() {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
-  const [description, setDescription] = useState("");
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState({
@@ -47,11 +46,9 @@ export default function StopEdit() {
       setEndDate(new Date(foundStop.end_date));
       setLatitude(foundStop.latitude?.toString() || "");
       setLongitude(foundStop.longitude?.toString() || "");
-      setDescription(foundStop.description || "");
       setImageUri(foundStop.image_uri);
       setNotes(foundStop.notes || "");
 
-      // Find the trip for this stop
       const foundTrip = trips.find((t) => t.id === foundStop.trip_id);
       setTrip(foundTrip || null);
     }
@@ -112,9 +109,12 @@ export default function StopEdit() {
 
         // Check if date ranges overlap (but allow touching at boundaries)
         return (
-          (normalizedStopStart > existingStart && normalizedStopStart < existingEnd) ||
-          (normalizedStopEnd > existingStart && normalizedStopEnd < existingEnd) ||
-          (normalizedStopStart <= existingStart && normalizedStopEnd >= existingEnd)
+          (normalizedStopStart > existingStart &&
+            normalizedStopStart < existingEnd) ||
+          (normalizedStopEnd > existingStart &&
+            normalizedStopEnd < existingEnd) ||
+          (normalizedStopStart <= existingStart &&
+            normalizedStopEnd >= existingEnd)
         );
       });
 
@@ -141,7 +141,6 @@ export default function StopEdit() {
         endDate!,
         lat,
         lng,
-        description || undefined,
         imageUri || undefined,
         notes || undefined
       );
@@ -216,11 +215,6 @@ export default function StopEdit() {
                 />
               </View>
             </View>
-            <Textarea
-              placeholder="Description (optionnel)"
-              value={description}
-              onChangeText={setDescription}
-            />
             <PhotoPicker
               onImageSelected={(uri) => setImageUri(uri)}
               initialImage={imageUri}
