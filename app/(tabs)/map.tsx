@@ -1,7 +1,7 @@
 import BottomModal from "@/components/BottomModal";
 import { useStops } from "@/contexts/StopContext";
 import { useTrips } from "@/contexts/TripContext";
-import { Stop } from "@/lib/database";
+import { Stop, stopService } from "@/lib/database";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
@@ -25,15 +25,46 @@ const DEFAULT_REGION: Region = {
 export default function MapScreen() {
   const router = useRouter();
   const { trips, isLoading: tripsLoading } = useTrips();
-  const { stops, setCurrentTripId, isLoading: stopsLoading } = useStops();
+  const {
+    stops: contextStops,
+    setCurrentTripId,
+    isLoading: stopsLoading,
+  } = useStops();
   const [selectedTripId, setSelectedTripId] = useState<number | "all">("all");
   const [showTripSelector, setShowTripSelector] = useState(false);
   const [mapRegion, setMapRegion] = useState<Region>(DEFAULT_REGION);
+  const [allStops, setAllStops] = useState<Stop[]>([]);
+  const [isLoadingAllStops, setIsLoadingAllStops] = useState(false);
 
   const selectedTrip = useMemo(() => {
     if (selectedTripId === "all") return null;
     return trips.find((t) => t.id === selectedTripId) || null;
   }, [selectedTripId, trips]);
+
+  useEffect(() => {
+    const loadAllStops = async () => {
+      if (selectedTripId === "all" && trips.length > 0) {
+        setIsLoadingAllStops(true);
+        try {
+          const allStopsPromises = trips.map((trip) =>
+            stopService.getStopsByTripId(trip.id)
+          );
+          const stopsArrays = await Promise.all(allStopsPromises);
+          const combined = stopsArrays.flat();
+          setAllStops(combined);
+        } catch (error) {
+          console.error("Error loading all stops:", error);
+        } finally {
+          setIsLoadingAllStops(false);
+        }
+      }
+    };
+
+    loadAllStops();
+  }, [selectedTripId, trips]);
+
+  const stops = selectedTripId === "all" ? allStops : contextStops;
+  const isLoading = selectedTripId === "all" ? isLoadingAllStops : stopsLoading;
 
   const filteredStops = useMemo(() => {
     const stopsWithCoords = stops.filter(
@@ -97,12 +128,32 @@ export default function MapScreen() {
     router.push(`/stop-edit?id=${stopId}`);
   };
 
-  const polylineCoordinates = useMemo(() => {
-    if (selectedTripId === "all" || filteredStops.length === 0) return [];
-    return filteredStops.map((stop) => ({
-      latitude: stop.latitude!,
-      longitude: stop.longitude!,
-    }));
+  const polylinesByTrip = useMemo(() => {
+    if (filteredStops.length === 0) return [];
+
+    if (selectedTripId === "all") {
+      const tripGroups = new Map<number, Stop[]>();
+      filteredStops.forEach((stop) => {
+        if (!tripGroups.has(stop.trip_id)) {
+          tripGroups.set(stop.trip_id, []);
+        }
+        tripGroups.get(stop.trip_id)!.push(stop);
+      });
+
+      return Array.from(tripGroups.values()).map((stops) =>
+        stops.map((stop) => ({
+          latitude: stop.latitude!,
+          longitude: stop.longitude!,
+        }))
+      );
+    }
+
+    return [
+      filteredStops.map((stop) => ({
+        latitude: stop.latitude!,
+        longitude: stop.longitude!,
+      })),
+    ];
   }, [filteredStops, selectedTripId]);
 
   const renderTripSelector = () => (
@@ -120,7 +171,7 @@ export default function MapScreen() {
   );
 
   const renderEmptyState = () => {
-    if (tripsLoading || stopsLoading) {
+    if (tripsLoading || isLoading) {
       return (
         <View style={styles.emptyContainer}>
           <ActivityIndicator size="large" color="#1dd1a1" />
@@ -189,12 +240,15 @@ export default function MapScreen() {
             </Marker>
           ))}
 
-          {polylineCoordinates.length > 1 && (
-            <Polyline
-              coordinates={polylineCoordinates}
-              strokeColor="#1dd1a1"
-              strokeWidth={3}
-            />
+          {polylinesByTrip.map((coordinates, index) =>
+            coordinates.length > 1 ? (
+              <Polyline
+                key={`polyline-${index}`}
+                coordinates={coordinates}
+                strokeColor="#F6921E"
+                strokeWidth={3}
+              />
+            ) : null
           )}
         </MapView>
       ) : (
@@ -309,7 +363,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#1dd1a1",
+    backgroundColor: "#F6921E",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
