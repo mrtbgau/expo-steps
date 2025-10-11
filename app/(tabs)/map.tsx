@@ -1,4 +1,4 @@
-import BottomModal from "@/components/BottomModal";
+import Dropdown, { DropdownOption } from "@/components/Dropdown";
 import { useStops } from "@/contexts/StopContext";
 import { useTrips } from "@/contexts/TripContext";
 import { Stop, stopService } from "@/lib/database";
@@ -7,10 +7,8 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Pressable,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import MapView, { Callout, Marker, Polyline, Region } from "react-native-maps";
@@ -31,15 +29,20 @@ export default function MapScreen() {
     isLoading: stopsLoading,
   } = useStops();
   const [selectedTripId, setSelectedTripId] = useState<number | "all">("all");
-  const [showTripSelector, setShowTripSelector] = useState(false);
   const [mapRegion, setMapRegion] = useState<Region>(DEFAULT_REGION);
   const [allStops, setAllStops] = useState<Stop[]>([]);
   const [isLoadingAllStops, setIsLoadingAllStops] = useState(false);
 
-  const selectedTrip = useMemo(() => {
-    if (selectedTripId === "all") return null;
-    return trips.find((t) => t.id === selectedTripId) || null;
-  }, [selectedTripId, trips]);
+  const dropdownOptions = useMemo<DropdownOption[]>(() => {
+    return [
+      { id: "all", label: "Tous les voyages", icon: "globe-outline" },
+      ...trips.map((trip) => ({
+        id: trip.id,
+        label: trip.title,
+        icon: "briefcase-outline" as keyof typeof Ionicons.glyphMap,
+      })),
+    ];
+  }, [trips]);
 
   useEffect(() => {
     const loadAllStops = async () => {
@@ -115,9 +118,8 @@ export default function MapScreen() {
     };
   };
 
-  const handleTripSelect = (tripId: number | "all") => {
-    setSelectedTripId(tripId);
-    setShowTripSelector(false);
+  const handleTripChange = (value: string | number) => {
+    setSelectedTripId(value as number | "all");
   };
 
   const handleMarkerPress = (stop: Stop) => {
@@ -182,19 +184,6 @@ export default function MapScreen() {
     ];
   }, [filteredStops, selectedTripId]);
 
-  const renderTripSelector = () => (
-    <View style={styles.tripSelectorContainer}>
-      <Pressable
-        style={styles.tripSelectorButton}
-        onPress={() => setShowTripSelector(true)}
-      >
-        <Text style={styles.tripSelectorText}>
-          {selectedTrip ? selectedTrip.title : "Tous les voyages"}
-        </Text>
-        <Ionicons name="chevron-down" size={20} color="#222f3e" />
-      </Pressable>
-    </View>
-  );
 
   const renderEmptyState = () => {
     if (tripsLoading || isLoading) {
@@ -235,7 +224,13 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      {renderTripSelector()}
+      <View style={styles.tripSelectorContainer}>
+        <Dropdown
+          value={selectedTripId}
+          options={dropdownOptions}
+          onChange={handleTripChange}
+        />
+      </View>
 
       {filteredStops.length > 0 ? (
         <MapView style={styles.map} region={mapRegion} showsUserLocation>
@@ -283,68 +278,6 @@ export default function MapScreen() {
         renderEmptyState()
       )}
 
-      <BottomModal
-        visible={showTripSelector}
-        onClose={() => setShowTripSelector(false)}
-        enableDynamicSizing
-      >
-        <View style={styles.tripSelectorModal}>
-          <Text style={styles.modalTitle}>Sélectionner un voyage</Text>
-
-          <TouchableOpacity
-            style={[
-              styles.tripOption,
-              selectedTripId === "all" && styles.tripOptionSelected,
-            ]}
-            onPress={() => handleTripSelect("all")}
-          >
-            <Ionicons
-              name="globe-outline"
-              size={24}
-              color={selectedTripId === "all" ? "#1dd1a1" : "#617989"}
-            />
-            <Text
-              style={[
-                styles.tripOptionText,
-                selectedTripId === "all" && styles.tripOptionTextSelected,
-              ]}
-            >
-              Tous les voyages
-            </Text>
-            {selectedTripId === "all" && (
-              <Ionicons name="checkmark" size={24} color="#1dd1a1" />
-            )}
-          </TouchableOpacity>
-
-          {trips.map((trip) => (
-            <TouchableOpacity
-              key={trip.id}
-              style={[
-                styles.tripOption,
-                selectedTripId === trip.id && styles.tripOptionSelected,
-              ]}
-              onPress={() => handleTripSelect(trip.id)}
-            >
-              <Ionicons
-                name="briefcase-outline"
-                size={24}
-                color={selectedTripId === trip.id ? "#1dd1a1" : "#617989"}
-              />
-              <Text
-                style={[
-                  styles.tripOptionText,
-                  selectedTripId === trip.id && styles.tripOptionTextSelected,
-                ]}
-              >
-                {trip.title}
-              </Text>
-              {selectedTripId === trip.id && (
-                <Ionicons name="checkmark" size={24} color="#1dd1a1" />
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-      </BottomModal>
     </View>
   );
 }
@@ -363,26 +296,6 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     zIndex: 1000,
-  },
-  tripSelectorButton: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  tripSelectorText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#222f3e",
-    flex: 1,
   },
   markerContainer: {
     alignItems: "center",
@@ -444,38 +357,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#617989",
     textAlign: "center",
-  },
-  tripSelectorModal: {
-    paddingBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#222f3e",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  tripOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 8,
-    backgroundColor: "#f8f9fa",
-  },
-  tripOptionSelected: {
-    backgroundColor: "#f0f9f7",
-    borderWidth: 1,
-    borderColor: "#1dd1a1",
-  },
-  tripOptionText: {
-    flex: 1,
-    fontSize: 16,
-    color: "#617989",
-    marginLeft: 12,
-  },
-  tripOptionTextSelected: {
-    color: "#222f3e",
-    fontWeight: "600",
   },
 });
