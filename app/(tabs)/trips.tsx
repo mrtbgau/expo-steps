@@ -143,14 +143,14 @@ export default function Tab() {
     }
   };
 
-  const renderTripCard = (trip: (typeof trips)[0]) => (
+  const renderTripCard = (trip: (typeof trips)[0], isPast: boolean) => (
     <Trip
       key={trip.id}
       title={trip.title}
       duration={calculateDuration(trip.start_date, trip.end_date)}
       dates={formatDateRange(trip.start_date, trip.end_date)}
       image={trip.image_uri || "https://via.placeholder.com/400x300"}
-      onPress={() => router.push(`/(tabs)/map?tripId=${trip.id}`)}
+      onPress={isPast ? () => router.push(`/(tabs)/map?tripId=${trip.id}`) : undefined}
       onLongPress={() => handleTripPress(trip)}
     />
   );
@@ -267,7 +267,7 @@ export default function Tab() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {pastTrips.map(renderTripCard)}
+            {pastTrips.map((trip) => renderTripCard(trip, true))}
           </ScrollView>
         </View>
         <View style={[styles.page, { width }]}>
@@ -275,7 +275,7 @@ export default function Tab() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {upcomingTrips.map(renderTripCard)}
+            {upcomingTrips.map((trip) => renderTripCard(trip, false))}
           </ScrollView>
         </View>
       </ScrollView>
