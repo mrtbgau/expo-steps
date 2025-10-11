@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
   },
   tripSelectorContainer: {
     position: "absolute",
-    top: 16,
+    top: 40,
     left: 16,
     right: 16,
     zIndex: 1000,
