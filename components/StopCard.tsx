@@ -7,7 +7,6 @@ type Props = {
   dates: string;
   location?: string;
   image?: string | null;
-  onPress?: () => void;
   onLongPress?: () => void;
 };
 
@@ -16,7 +15,6 @@ export default function StopCard({
   dates,
   location,
   image,
-  onPress,
   onLongPress,
 }: Props) {
   const [displayLocation, setDisplayLocation] = useState<string | undefined>(
@@ -61,7 +59,6 @@ export default function StopCard({
     <TouchableOpacity
       style={styles.stopCard}
       activeOpacity={0.7}
-      onPress={onPress}
       onLongPress={onLongPress}
     >
       {image ? (
