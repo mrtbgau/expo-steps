@@ -5,12 +5,7 @@ import { Stop, stopService } from "@/lib/database";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import MapView, { Callout, Marker, Polyline, Region } from "react-native-maps";
 
 const DEFAULT_REGION: Region = {
@@ -33,23 +28,29 @@ export default function MapScreen() {
   const [allStops, setAllStops] = useState<Stop[]>([]);
   const [isLoadingAllStops, setIsLoadingAllStops] = useState(false);
 
+  const pastTrips = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return trips.filter((trip) => new Date(trip.end_date) < today);
+  }, [trips]);
+
   const dropdownOptions = useMemo<DropdownOption[]>(() => {
     return [
-      { id: "all", label: "Tous les voyages", icon: "globe-outline" },
-      ...trips.map((trip) => ({
+      { id: "all", label: "Tous vos voyages passés", icon: "globe-outline" },
+      ...pastTrips.map((trip) => ({
         id: trip.id,
         label: trip.title,
         icon: "briefcase-outline" as keyof typeof Ionicons.glyphMap,
       })),
     ];
-  }, [trips]);
+  }, [pastTrips]);
 
   useEffect(() => {
     const loadAllStops = async () => {
-      if (selectedTripId === "all" && trips.length > 0) {
+      if (selectedTripId === "all" && pastTrips.length > 0) {
         setIsLoadingAllStops(true);
         try {
-          const allStopsPromises = trips.map((trip) =>
+          const allStopsPromises = pastTrips.map((trip) =>
             stopService.getStopsByTripId(trip.id)
           );
           const stopsArrays = await Promise.all(allStopsPromises);
@@ -64,7 +65,7 @@ export default function MapScreen() {
     };
 
     loadAllStops();
-  }, [selectedTripId, trips]);
+  }, [selectedTripId, pastTrips]);
 
   const stops = selectedTripId === "all" ? allStops : contextStops;
   const isLoading = selectedTripId === "all" ? isLoadingAllStops : stopsLoading;
@@ -184,7 +185,6 @@ export default function MapScreen() {
     ];
   }, [filteredStops, selectedTripId]);
 
-
   const renderEmptyState = () => {
     if (tripsLoading || isLoading) {
       return (
@@ -195,13 +195,13 @@ export default function MapScreen() {
       );
     }
 
-    if (trips.length === 0) {
+    if (pastTrips.length === 0) {
       return (
         <View style={styles.emptyContainer}>
           <Ionicons name="map-outline" size={64} color="#d1d5db" />
-          <Text style={styles.emptyTitle}>Aucun voyage</Text>
+          <Text style={styles.emptyTitle}>Aucun voyage passé</Text>
           <Text style={styles.emptyText}>
-            Créez votre premier voyage pour voir vos étapes sur la carte
+            Aucun voyage terminé à afficher sur la carte
           </Text>
         </View>
       );
@@ -277,7 +277,6 @@ export default function MapScreen() {
       ) : (
         renderEmptyState()
       )}
-
     </View>
   );
 }
