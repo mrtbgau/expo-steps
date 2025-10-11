@@ -128,6 +128,32 @@ export default function MapScreen() {
     router.push(`/stop-edit?id=${stopId}`);
   };
 
+  const stopNumberMap = useMemo(() => {
+    const map = new Map<number, number>();
+
+    if (selectedTripId === "all") {
+      const tripGroups = new Map<number, Stop[]>();
+      filteredStops.forEach((stop) => {
+        if (!tripGroups.has(stop.trip_id)) {
+          tripGroups.set(stop.trip_id, []);
+        }
+        tripGroups.get(stop.trip_id)!.push(stop);
+      });
+
+      tripGroups.forEach((stops) => {
+        stops.forEach((stop, index) => {
+          map.set(stop.id, index + 1);
+        });
+      });
+    } else {
+      filteredStops.forEach((stop, index) => {
+        map.set(stop.id, index + 1);
+      });
+    }
+
+    return map;
+  }, [filteredStops, selectedTripId]);
+
   const polylinesByTrip = useMemo(() => {
     if (filteredStops.length === 0) return [];
 
@@ -213,7 +239,7 @@ export default function MapScreen() {
 
       {filteredStops.length > 0 ? (
         <MapView style={styles.map} region={mapRegion} showsUserLocation>
-          {filteredStops.map((stop, index) => (
+          {filteredStops.map((stop) => (
             <Marker
               key={stop.id}
               coordinate={{
@@ -224,7 +250,9 @@ export default function MapScreen() {
             >
               <View style={styles.markerContainer}>
                 <View style={styles.marker}>
-                  <Text style={styles.markerText}>{index + 1}</Text>
+                  <Text style={styles.markerText}>
+                    {stopNumberMap.get(stop.id) || 1}
+                  </Text>
                 </View>
               </View>
               <Callout onPress={() => handleCalloutPress(stop.id)}>
