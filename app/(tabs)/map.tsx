@@ -1,7 +1,7 @@
 import BottomModal from "@/components/BottomModal";
 import { useStops } from "@/contexts/StopContext";
 import { useTrips } from "@/contexts/TripContext";
-import { Stop, Trip } from "@/lib/database";
+import { Stop } from "@/lib/database";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
@@ -14,7 +14,6 @@ import {
   View,
 } from "react-native";
 import MapView, { Callout, Marker, Polyline, Region } from "react-native-maps";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const DEFAULT_REGION: Region = {
   latitude: 48.8566,
@@ -158,7 +157,7 @@ export default function MapScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={styles.container}>
       {renderTripSelector()}
 
       {filteredStops.length > 0 ? (
@@ -264,7 +263,7 @@ export default function MapScreen() {
           ))}
         </View>
       </BottomModal>
-    </SafeAreaView>
+    </View>
   );
 }
 
