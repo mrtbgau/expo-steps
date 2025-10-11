@@ -150,6 +150,7 @@ export default function Tab() {
       duration={calculateDuration(trip.start_date, trip.end_date)}
       dates={formatDateRange(trip.start_date, trip.end_date)}
       image={trip.image_uri || "https://via.placeholder.com/400x300"}
+      onPress={() => router.push(`/(tabs)/map?tripId=${trip.id}`)}
       onLongPress={() => handleTripPress(trip)}
     />
   );

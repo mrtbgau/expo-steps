@@ -3,7 +3,7 @@ import { useStops } from "@/contexts/StopContext";
 import { useTrips } from "@/contexts/TripContext";
 import { Stop, stopService } from "@/lib/database";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import MapView, { Callout, Marker, Polyline, Region } from "react-native-maps";
@@ -17,6 +17,7 @@ const DEFAULT_REGION: Region = {
 
 export default function MapScreen() {
   const router = useRouter();
+  const { tripId } = useLocalSearchParams<{ tripId?: string }>();
   const { trips, isLoading: tripsLoading } = useTrips();
   const {
     stops: contextStops,
@@ -33,6 +34,15 @@ export default function MapScreen() {
     today.setHours(0, 0, 0, 0);
     return trips.filter((trip) => new Date(trip.end_date) < today);
   }, [trips]);
+
+  useEffect(() => {
+    if (tripId) {
+      const numericTripId = parseInt(tripId, 10);
+      if (!isNaN(numericTripId)) {
+        setSelectedTripId(numericTripId);
+      }
+    }
+  }, [tripId]);
 
   const dropdownOptions = useMemo<DropdownOption[]>(() => {
     return [

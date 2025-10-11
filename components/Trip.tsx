@@ -5,6 +5,7 @@ type Props = {
   duration: string;
   dates: string;
   image: string;
+  onPress?: () => void;
   onLongPress?: () => void;
 };
 
@@ -13,12 +14,14 @@ export default function Trip({
   duration,
   dates,
   image,
+  onPress,
   onLongPress,
 }: Props) {
   return (
     <TouchableOpacity
       style={styles.tripCard}
       activeOpacity={0.7}
+      onPress={onPress}
       onLongPress={onLongPress}
     >
       <View style={styles.tripInfo}>
