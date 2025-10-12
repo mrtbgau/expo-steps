@@ -3,6 +3,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider } from "../contexts/AuthContext";
 import { TripProvider } from "../contexts/TripContext";
 import { StopProvider } from "../contexts/StopContext";
+import { JournalProvider } from "../contexts/JournalContext";
 
 export default function RootLayout() {
   return (
@@ -10,7 +11,9 @@ export default function RootLayout() {
       <AuthProvider>
         <TripProvider>
           <StopProvider>
-            <Slot />
+            <JournalProvider>
+              <Slot />
+            </JournalProvider>
           </StopProvider>
         </TripProvider>
       </AuthProvider>
