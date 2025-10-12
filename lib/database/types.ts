@@ -81,3 +81,24 @@ export interface ChecklistReminder {
   is_triggered: number;
   created_at: string;
 }
+
+export interface TripShare {
+  id: number;
+  trip_id: number;
+  shared_by_user_id: number;
+  share_token: string;
+  share_type: string;
+  is_active: number;
+  created_at: string;
+  expires_at: string | null;
+}
+
+export interface TripCollaborator {
+  id: number;
+  trip_id: number;
+  user_email: string;
+  role: string;
+  status: string;
+  invited_at: string;
+  accepted_at: string | null;
+}
