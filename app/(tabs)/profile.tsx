@@ -74,6 +74,18 @@ export default function Profile() {
           ]}
         />
         <ProfileSection
+          title="Checklist"
+          rows={[
+            {
+              label: "Checklist de préparation",
+              action: {
+                text: "Gérer",
+                onPress: () => router.push("/checklist"),
+              },
+            },
+          ]}
+        />
+        <ProfileSection
           title="Paramètres"
           rows={[
             {
