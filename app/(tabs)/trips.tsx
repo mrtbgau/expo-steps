@@ -212,8 +212,9 @@ export default function Tab() {
   };
 
   const handleSharing = () => {
-    setSuccessMessage("Fonctionnalité de partage à venir");
-    setShowSuccessDialog(true);
+    if (!selectedTrip) return;
+    setIsTripDetailsModalVisible(false);
+    router.push(`/trip-sharing?tripId=${selectedTrip.id}`);
   };
 
   return (
