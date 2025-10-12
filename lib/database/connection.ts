@@ -107,6 +107,30 @@ class DatabaseConnection {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
       );
+
+      CREATE TABLE IF NOT EXISTS trip_shares (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        trip_id INTEGER NOT NULL,
+        shared_by_user_id INTEGER NOT NULL,
+        share_token TEXT UNIQUE NOT NULL,
+        share_type TEXT NOT NULL,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        expires_at TEXT,
+        FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE,
+        FOREIGN KEY (shared_by_user_id) REFERENCES users (id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS trip_collaborators (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        trip_id INTEGER NOT NULL,
+        user_email TEXT NOT NULL,
+        role TEXT NOT NULL,
+        status TEXT NOT NULL,
+        invited_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        accepted_at TEXT,
+        FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
+      );
     `);
   }
 
