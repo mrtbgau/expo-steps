@@ -31,3 +31,24 @@ export interface Stop {
   created_at: string;
   updated_at: string;
 }
+
+export interface JournalEntry {
+  id: number;
+  trip_id: number;
+  stop_id: number | null;
+  entry_date: string;
+  title: string;
+  content: string | null;
+  audio_uri: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface JournalPhoto {
+  id: number;
+  entry_id: number;
+  image_uri: string;
+  caption: string | null;
+  order_index: number;
+  created_at: string;
+}
