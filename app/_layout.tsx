@@ -5,6 +5,7 @@ import { TripProvider } from "../contexts/TripContext";
 import { StopProvider } from "../contexts/StopContext";
 import { JournalProvider } from "../contexts/JournalContext";
 import { ChecklistProvider } from "../contexts/ChecklistContext";
+import { SharingProvider } from "../contexts/SharingContext";
 
 export default function RootLayout() {
   return (
@@ -14,7 +15,9 @@ export default function RootLayout() {
           <StopProvider>
             <JournalProvider>
               <ChecklistProvider>
-                <Slot />
+                <SharingProvider>
+                  <Slot />
+                </SharingProvider>
               </ChecklistProvider>
             </JournalProvider>
           </StopProvider>
