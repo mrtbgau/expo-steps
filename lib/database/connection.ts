@@ -75,6 +75,38 @@ class DatabaseConnection {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (entry_id) REFERENCES journal_entries (id) ON DELETE CASCADE
       );
+
+      CREATE TABLE IF NOT EXISTS checklist_categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        trip_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        icon TEXT NOT NULL,
+        order_index INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS checklist_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        is_checked INTEGER NOT NULL DEFAULT 0,
+        order_index INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES checklist_categories (id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS checklist_reminders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        trip_id INTEGER NOT NULL,
+        reminder_date TEXT NOT NULL,
+        message TEXT NOT NULL,
+        is_triggered INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
+      );
     `);
   }
 
