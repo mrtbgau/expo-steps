@@ -52,3 +52,32 @@ export interface JournalPhoto {
   order_index: number;
   created_at: string;
 }
+
+export interface ChecklistCategory {
+  id: number;
+  trip_id: number;
+  name: string;
+  icon: string;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChecklistItem {
+  id: number;
+  category_id: number;
+  name: string;
+  is_checked: number;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChecklistReminder {
+  id: number;
+  trip_id: number;
+  reminder_date: string;
+  message: string;
+  is_triggered: number;
+  created_at: string;
+}
