@@ -51,6 +51,30 @@ class DatabaseConnection {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
       );
+
+      CREATE TABLE IF NOT EXISTS journal_entries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        trip_id INTEGER NOT NULL,
+        stop_id INTEGER,
+        entry_date TEXT NOT NULL,
+        title TEXT NOT NULL,
+        content TEXT,
+        audio_uri TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE,
+        FOREIGN KEY (stop_id) REFERENCES stops (id) ON DELETE SET NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS journal_photos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        entry_id INTEGER NOT NULL,
+        image_uri TEXT NOT NULL,
+        caption TEXT,
+        order_index INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (entry_id) REFERENCES journal_entries (id) ON DELETE CASCADE
+      );
     `);
   }
 
