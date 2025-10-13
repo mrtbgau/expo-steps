@@ -1,7 +1,11 @@
-import { dbConnection } from "./connection";
+import { ITripService } from "../interfaces/ITripService";
+import { IDatabaseConnection } from "../interfaces/IDatabaseConnection";
+import { TripValidator } from "../utils/validators";
 import { Trip } from "./types";
 
-class TripService {
+class TripService implements ITripService {
+  constructor(private dbConnection: IDatabaseConnection) {}
+
   async createTrip(
     userId: number,
     title: string,
@@ -10,13 +14,11 @@ class TripService {
     imageUri: string | null,
     notes?: string
   ): Promise<Trip | null> {
-    const db = await dbConnection.init();
+    const db = await this.dbConnection.init();
     if (!db) return null;
 
     try {
-      if (!title || !startDate || !endDate) {
-        throw new Error("Tous les champs obligatoires doivent être remplis");
-      }
+      this.validateTripData(title, startDate, endDate);
 
       const result = await db.runAsync(
         "INSERT INTO trips (user_id, title, start_date, end_date, image_uri, notes) VALUES (?, ?, ?, ?, ?, ?)",
@@ -36,7 +38,7 @@ class TripService {
   }
 
   async getTrips(userId: number): Promise<Trip[]> {
-    const db = await dbConnection.init();
+    const db = await this.dbConnection.init();
     if (!db) return [];
 
     try {
@@ -60,13 +62,11 @@ class TripService {
     imageUri: string | null,
     notes?: string
   ): Promise<Trip | null> {
-    const db = await dbConnection.init();
+    const db = await this.dbConnection.init();
     if (!db) return null;
 
     try {
-      if (!title || !startDate || !endDate) {
-        throw new Error("Tous les champs obligatoires doivent être remplis");
-      }
+      this.validateTripData(title, startDate, endDate);
 
       await db.runAsync(
         "UPDATE trips SET title = ?, start_date = ?, end_date = ?, image_uri = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
@@ -86,7 +86,7 @@ class TripService {
   }
 
   async deleteTrip(tripId: number): Promise<boolean> {
-    const db = await dbConnection.init();
+    const db = await this.dbConnection.init();
     if (!db) return false;
 
     try {
@@ -100,6 +100,29 @@ class TripService {
       throw error;
     }
   }
+
+  private validateTripData(title: string, startDate: string, endDate: string): void {
+    if (!title || !startDate || !endDate) {
+      throw new Error("Tous les champs obligatoires doivent être remplis");
+    }
+
+    const titleError = TripValidator.validateTitle(title);
+    if (titleError) {
+      throw new Error(titleError);
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const dateErrors = TripValidator.validateDates(start, end);
+
+    if (dateErrors.startDate) {
+      throw new Error(dateErrors.startDate);
+    }
+
+    if (dateErrors.endDate) {
+      throw new Error(dateErrors.endDate);
+    }
+  }
 }
 
-export const tripService = new TripService();
+export { TripService };

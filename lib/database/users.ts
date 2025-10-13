@@ -1,5 +1,7 @@
 import bcrypt from "bcryptjs";
-import { dbConnection } from "./connection";
+import { IUserService } from "../interfaces/IUserService";
+import { IDatabaseConnection } from "../interfaces/IDatabaseConnection";
+import { EmailValidator, PasswordValidator } from "../utils/validators";
 import { User } from "./types";
 
 bcrypt.setRandomFallback((len: number) => {
@@ -10,39 +12,32 @@ bcrypt.setRandomFallback((len: number) => {
   return Array.from(bytes);
 });
 
-class UserService {
+class UserService implements IUserService {
+  constructor(private dbConnection: IDatabaseConnection) {}
+
   async createUser(email: string, password: string): Promise<User | null> {
-    const db = await dbConnection.init();
+    const db = await this.dbConnection.init();
     if (!db) return null;
 
-    console.log("=== DEBUG createUser ===");
-    console.log("email type:", typeof email, "value:", email);
-    console.log("password type:", typeof password, "length:", password?.length);
-
     try {
-      if (!email || typeof email !== "string") {
-        throw new Error("Email invalide");
+      const emailError = EmailValidator.validate(email);
+      if (emailError) {
+        throw new Error(emailError);
       }
 
-      if (!password || typeof password !== "string") {
-        throw new Error("Mot de passe invalide");
+      const passwordError = PasswordValidator.validate(password);
+      if (passwordError) {
+        throw new Error(passwordError);
       }
 
-      if (password.length < 6) {
-        throw new Error("Le mot de passe doit contenir au moins 6 caractères");
-      }
-
-      const normalizedEmail = email.toLowerCase().trim();
+      const normalizedEmail = EmailValidator.normalize(email);
 
       const existingUser = await this.getUserByEmail(normalizedEmail);
       if (existingUser) {
         throw new Error("Un compte avec cet email existe déjà");
       }
 
-      console.log("Hashing password...");
-      const salt = bcrypt.genSaltSync(10);
-      const hashedPassword = bcrypt.hashSync(password, salt);
-      console.log("Password hashed successfully");
+      const hashedPassword = await this.hashPassword(password);
 
       const result = await db.runAsync(
         "INSERT INTO users (email, password) VALUES (?, ?)",
@@ -54,7 +49,6 @@ class UserService {
         [result.lastInsertRowId]
       );
 
-      console.log("User created successfully:", user?.id);
       return user;
     } catch (error) {
       console.error("Error creating user:", error);
@@ -66,12 +60,13 @@ class UserService {
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
-    const db = await dbConnection.init();
+    const db = await this.dbConnection.init();
     if (!db) return null;
 
-    if (!email || typeof email !== "string") return null;
+    const emailError = EmailValidator.validate(email);
+    if (emailError) return null;
 
-    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedEmail = EmailValidator.normalize(email);
     const user = await db.getFirstAsync<User>(
       "SELECT * FROM users WHERE email = ?",
       [normalizedEmail]
@@ -81,16 +76,14 @@ class UserService {
   }
 
   async verifyPassword(email: string, password: string): Promise<User | null> {
-    console.log("=== DEBUG verifyPassword ===");
-    console.log("email:", email, typeof email);
-    console.log("password:", password ? "***" : "EMPTY", typeof password);
-
-    if (!email || !password) {
+    const emailError = EmailValidator.validate(email);
+    if (emailError) {
       throw new Error("Email et mot de passe sont requis");
     }
 
-    if (typeof email !== "string" || typeof password !== "string") {
-      throw new Error("Email et mot de passe invalides");
+    const passwordError = PasswordValidator.validate(password);
+    if (passwordError) {
+      throw new Error("Email et mot de passe sont requis");
     }
 
     const user = await this.getUserByEmail(email);
@@ -98,9 +91,7 @@ class UserService {
       throw new Error("Email ou mot de passe invalide");
     }
 
-    console.log("Comparing passwords...");
     const isValid = bcrypt.compareSync(password, user.password);
-    console.log("Password comparison result:", isValid);
 
     if (!isValid) {
       throw new Error("Email ou mot de passe invalide");
@@ -111,15 +102,16 @@ class UserService {
   }
 
   async deleteUser(email: string): Promise<boolean> {
-    const db = await dbConnection.init();
+    const db = await this.dbConnection.init();
     if (!db) return false;
 
-    if (!email || typeof email !== "string") {
-      throw new Error("Email invalide");
+    const emailError = EmailValidator.validate(email);
+    if (emailError) {
+      throw new Error(emailError);
     }
 
     try {
-      const normalizedEmail = email.toLowerCase().trim();
+      const normalizedEmail = EmailValidator.normalize(email);
 
       const user = await this.getUserByEmail(normalizedEmail);
       if (!user) {
@@ -137,6 +129,11 @@ class UserService {
       throw error;
     }
   }
+
+  private async hashPassword(password: string): Promise<string> {
+    const salt = bcrypt.genSaltSync(10);
+    return bcrypt.hashSync(password, salt);
+  }
 }
 
-export const userService = new UserService();
+export { UserService };

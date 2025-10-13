@@ -1,140 +1,19 @@
 import * as SQLite from "expo-sqlite";
+import { IDatabaseConnection } from "../interfaces/IDatabaseConnection";
+import { DatabaseSchema } from "./schema";
 
-class DatabaseConnection {
+class DatabaseConnection implements IDatabaseConnection {
   private db: SQLite.SQLiteDatabase | null = null;
 
-  async init() {
+  async init(): Promise<SQLite.SQLiteDatabase | null> {
     if (!this.db) {
       this.db = await SQLite.openDatabaseAsync("tripFlow.db");
-      await this.createTables();
+      await DatabaseSchema.createTables(this.db);
     }
     return this.db;
   }
 
-  private async createTables() {
-    if (!this.db) return;
-
-    await this.db.execAsync(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE IF NOT EXISTS trips (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        title TEXT NOT NULL,
-        start_date TEXT NOT NULL,
-        end_date TEXT NOT NULL,
-        image_uri TEXT,
-        notes TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-      );
-
-      CREATE TABLE IF NOT EXISTS stops (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        trip_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        latitude REAL,
-        longitude REAL,
-        start_date TEXT NOT NULL,
-        end_date TEXT NOT NULL,
-        description TEXT,
-        image_uri TEXT,
-        notes TEXT,
-        order_index INTEGER NOT NULL DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
-      );
-
-      CREATE TABLE IF NOT EXISTS journal_entries (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        trip_id INTEGER NOT NULL,
-        stop_id INTEGER,
-        entry_date TEXT NOT NULL,
-        title TEXT NOT NULL,
-        content TEXT,
-        audio_uri TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE,
-        FOREIGN KEY (stop_id) REFERENCES stops (id) ON DELETE SET NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS journal_photos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        entry_id INTEGER NOT NULL,
-        image_uri TEXT NOT NULL,
-        caption TEXT,
-        order_index INTEGER NOT NULL DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (entry_id) REFERENCES journal_entries (id) ON DELETE CASCADE
-      );
-
-      CREATE TABLE IF NOT EXISTS checklist_categories (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        trip_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        icon TEXT NOT NULL,
-        order_index INTEGER NOT NULL DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
-      );
-
-      CREATE TABLE IF NOT EXISTS checklist_items (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        category_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        is_checked INTEGER NOT NULL DEFAULT 0,
-        order_index INTEGER NOT NULL DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (category_id) REFERENCES checklist_categories (id) ON DELETE CASCADE
-      );
-
-      CREATE TABLE IF NOT EXISTS checklist_reminders (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        trip_id INTEGER NOT NULL,
-        reminder_date TEXT NOT NULL,
-        message TEXT NOT NULL,
-        is_triggered INTEGER NOT NULL DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
-      );
-
-      CREATE TABLE IF NOT EXISTS trip_shares (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        trip_id INTEGER NOT NULL,
-        shared_by_user_id INTEGER NOT NULL,
-        share_token TEXT UNIQUE NOT NULL,
-        share_type TEXT NOT NULL,
-        is_active INTEGER NOT NULL DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        expires_at TEXT,
-        FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE,
-        FOREIGN KEY (shared_by_user_id) REFERENCES users (id) ON DELETE CASCADE
-      );
-
-      CREATE TABLE IF NOT EXISTS trip_collaborators (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        trip_id INTEGER NOT NULL,
-        user_email TEXT NOT NULL,
-        role TEXT NOT NULL,
-        status TEXT NOT NULL,
-        invited_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        accepted_at TEXT,
-        FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE
-      );
-    `);
-  }
-
-  getDb() {
+  getDb(): SQLite.SQLiteDatabase | null {
     return this.db;
   }
 }

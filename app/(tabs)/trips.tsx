@@ -8,6 +8,8 @@ import Textarea from "@/components/Textarea";
 import Trip from "@/components/Trip";
 import { useTrips } from "@/contexts/TripContext";
 import { Trip as TripType } from "@/lib/database";
+import { DateFormatter, TripCategorizer } from "@/lib/utils/formatters";
+import { TripValidator } from "@/lib/utils/validators";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useMemo, useRef, useState } from "react";
@@ -37,7 +39,6 @@ export default function Tab() {
   const scrollViewRef = useRef<ScrollView>(null);
   const { trips, createTrip, deleteTrip, isLoading } = useTrips();
 
-  // Form state
   const [title, setTitle] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
@@ -49,35 +50,10 @@ export default function Tab() {
     endDate: "",
   });
 
-  // Filter trips into past and upcoming based on end date
   const { pastTrips, upcomingTrips } = useMemo(() => {
-    const now = new Date();
-    const past = trips.filter((trip) => new Date(trip.end_date) < now);
-    const upcoming = trips.filter((trip) => new Date(trip.end_date) >= now);
-    return { pastTrips: past, upcomingTrips: upcoming };
+    const categorized = TripCategorizer.categorizeTrips(trips);
+    return { pastTrips: categorized.past, upcomingTrips: categorized.upcoming };
   }, [trips]);
-
-  // Helper functions
-  const calculateDuration = (start: string, end: string): string => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return `${diffDays} jour${diffDays > 1 ? "s" : ""}`;
-  };
-
-  const formatDateRange = (start: string, end: string): string => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const options: Intl.DateTimeFormatOptions = {
-      month: "short",
-      day: "numeric",
-    };
-    return `${startDate.toLocaleDateString(
-      "fr-FR",
-      options
-    )} - ${endDate.toLocaleDateString("fr-FR", options)}`;
-  };
 
   const resetForm = () => {
     setTitle("");
@@ -91,25 +67,22 @@ export default function Tab() {
   const validateForm = (): boolean => {
     const newErrors = {
       title: "",
-      destination: "",
       startDate: "",
       endDate: "",
     };
 
-    if (!title.trim()) {
-      newErrors.title = "Le nom du voyage est requis";
+    const titleError = TripValidator.validateTitle(title);
+    if (titleError) {
+      newErrors.title = titleError;
     }
 
-    if (!startDate) {
-      newErrors.startDate = "La date de début est requise";
+    const dateErrors = TripValidator.validateDates(startDate, endDate);
+    if (dateErrors.startDate) {
+      newErrors.startDate = dateErrors.startDate;
     }
 
-    if (!endDate) {
-      newErrors.endDate = "La date de fin est requise";
-    }
-
-    if (startDate && endDate && startDate > endDate) {
-      newErrors.endDate = "La date de fin doit être après la date de début";
+    if (dateErrors.endDate) {
+      newErrors.endDate = dateErrors.endDate;
     }
 
     setErrors(newErrors);
@@ -147,8 +120,8 @@ export default function Tab() {
     <Trip
       key={trip.id}
       title={trip.title}
-      duration={calculateDuration(trip.start_date, trip.end_date)}
-      dates={formatDateRange(trip.start_date, trip.end_date)}
+      duration={DateFormatter.calculateDuration(trip.start_date, trip.end_date)}
+      dates={DateFormatter.formatDateRange(trip.start_date, trip.end_date)}
       image={trip.image_uri || "https://via.placeholder.com/400x300"}
       onPress={isPast ? () => router.push(`/(tabs)/map?tripId=${trip.id}`) : undefined}
       onLongPress={() => handleTripPress(trip)}

@@ -2,6 +2,7 @@ import Button from "@/components/Button";
 import Header from "@/components/Header";
 import Input from "@/components/Input";
 import { useAuth } from "@/contexts/AuthContext";
+import { EmailValidator, PasswordValidator } from "@/lib/utils/validators";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -26,17 +27,14 @@ export default function LoginScreen() {
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
 
-    if (!email.trim()) {
-      newErrors.email = "L'email est requis";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Format d'email invalide";
+    const emailError = EmailValidator.validate(email);
+    if (emailError) {
+      newErrors.email = emailError;
     }
 
-    if (!password) {
-      newErrors.password = "Le mot de passe est requis";
-    } else if (password.length < 6) {
-      newErrors.password =
-        "Le mot de passe doit contenir au moins 6 caractères";
+    const passwordError = PasswordValidator.validate(password);
+    if (passwordError) {
+      newErrors.password = passwordError;
     }
 
     setErrors(newErrors);
@@ -47,7 +45,7 @@ export default function LoginScreen() {
     if (!validateForm()) return;
 
     try {
-      await login(email.trim().toLowerCase(), password);
+      await login(EmailValidator.normalize(email), password);
       router.replace("/(tabs)/trips");
     } catch (error) {
       Alert.alert(
