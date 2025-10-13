@@ -3,10 +3,10 @@ import { useStops } from "@/contexts/StopContext";
 import { useTrips } from "@/contexts/TripContext";
 import { Stop, stopService } from "@/lib/database";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import MapView, { Callout, Marker, Polyline, Region } from "react-native-maps";
+import MapView, { Marker, Polyline, Region } from "react-native-maps";
 
 const DEFAULT_REGION: Region = {
   latitude: 48.8566,
@@ -16,7 +16,6 @@ const DEFAULT_REGION: Region = {
 };
 
 export default function MapScreen() {
-  const router = useRouter();
   const mapRef = useRef<MapView>(null);
   const { tripId } = useLocalSearchParams<{ tripId?: string }>();
   const { trips, isLoading: tripsLoading } = useTrips();
@@ -146,10 +145,6 @@ export default function MapScreen() {
     }
   };
 
-  const handleCalloutPress = (stopId: number) => {
-    router.push(`/stop-edit?id=${stopId}`);
-  };
-
   const stopNumberMap = useMemo(() => {
     const map = new Map<number, number>();
 
@@ -252,7 +247,12 @@ export default function MapScreen() {
       </View>
 
       {filteredStops.length > 0 ? (
-        <MapView ref={mapRef} style={styles.map} region={mapRegion} showsUserLocation>
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          region={mapRegion}
+          showsUserLocation
+        >
           {filteredStops.map((stop) => (
             <Marker
               key={stop.id}
@@ -269,16 +269,6 @@ export default function MapScreen() {
                   </Text>
                 </View>
               </View>
-              <Callout onPress={() => handleCalloutPress(stop.id)}>
-                <View style={styles.callout}>
-                  <Text style={styles.calloutTitle}>{stop.name}</Text>
-                  <Text style={styles.calloutDate}>
-                    {new Date(stop.start_date).toLocaleDateString("fr-FR")} -{" "}
-                    {new Date(stop.end_date).toLocaleDateString("fr-FR")}
-                  </Text>
-                  <Text style={styles.calloutAction}>Voir détails →</Text>
-                </View>
-              </Callout>
             </Marker>
           ))}
 
@@ -337,26 +327,6 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 14,
     fontWeight: "bold",
-  },
-  callout: {
-    width: 200,
-    padding: 8,
-  },
-  calloutTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#222f3e",
-    marginBottom: 4,
-  },
-  calloutDate: {
-    fontSize: 12,
-    color: "#617989",
-    marginBottom: 8,
-  },
-  calloutAction: {
-    fontSize: 14,
-    color: "#1dd1a1",
-    fontWeight: "600",
   },
   emptyContainer: {
     flex: 1,
