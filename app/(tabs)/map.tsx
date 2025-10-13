@@ -4,7 +4,7 @@ import { useTrips } from "@/contexts/TripContext";
 import { Stop, stopService } from "@/lib/database";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import MapView, { Callout, Marker, Polyline, Region } from "react-native-maps";
 
@@ -17,6 +17,7 @@ const DEFAULT_REGION: Region = {
 
 export default function MapScreen() {
   const router = useRouter();
+  const mapRef = useRef<MapView>(null);
   const { tripId } = useLocalSearchParams<{ tripId?: string }>();
   const { trips, isLoading: tripsLoading } = useTrips();
   const {
@@ -134,7 +135,15 @@ export default function MapScreen() {
   };
 
   const handleMarkerPress = (stop: Stop) => {
-    console.log("Marker pressed:", stop.name);
+    if (mapRef.current && stop.latitude && stop.longitude) {
+      const region: Region = {
+        latitude: stop.latitude,
+        longitude: stop.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      };
+      mapRef.current.animateToRegion(region, 500);
+    }
   };
 
   const handleCalloutPress = (stopId: number) => {
@@ -243,7 +252,7 @@ export default function MapScreen() {
       </View>
 
       {filteredStops.length > 0 ? (
-        <MapView style={styles.map} region={mapRegion} showsUserLocation>
+        <MapView ref={mapRef} style={styles.map} region={mapRegion} showsUserLocation>
           {filteredStops.map((stop) => (
             <Marker
               key={stop.id}
