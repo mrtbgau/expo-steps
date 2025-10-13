@@ -3,7 +3,6 @@ import BottomModal from "@/components/BottomModal";
 import Dropdown, { DropdownOption } from "@/components/Dropdown";
 import Header from "@/components/Header";
 import JournalEntryCard from "@/components/journal/JournalEntryCard";
-import JournalFilter from "@/components/journal/JournalFilter";
 import { useJournal } from "@/contexts/JournalContext";
 import { useStops } from "@/contexts/StopContext";
 import { useTrips } from "@/contexts/TripContext";
@@ -29,13 +28,11 @@ export default function JournalScreen() {
     photos,
     isLoading,
     setCurrentTripId,
-    filterByStop,
     setFilterByStop,
     deleteEntry,
   } = useJournal();
 
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
-  const [viewMode, setViewMode] = useState<"date" | "stop">("date");
   const [selectedEntry, setSelectedEntry] = useState<number | null>(null);
   const [isOptionsModalVisible, setIsOptionsModalVisible] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -67,13 +64,6 @@ export default function JournalScreen() {
     setCurrentTripId(tripId);
     setStopsTripId(tripId);
     setFilterByStop(null);
-  };
-
-  const handleViewModeChange = (mode: "date" | "stop") => {
-    setViewMode(mode);
-    if (mode === "date") {
-      setFilterByStop(null);
-    }
   };
 
   const handleEntryPress = (entryId: number) => {
@@ -116,14 +106,10 @@ export default function JournalScreen() {
     }
   };
 
-  const selectedStop = useMemo(() => {
-    if (!filterByStop) return null;
-    return stops.find((s) => s.id === filterByStop);
-  }, [filterByStop, stops]);
-
   const renderEntry = ({ item }: { item: any }) => {
     const entryPhotos = photos.get(item.id) || [];
-    const thumbnailUri = entryPhotos.length > 0 ? entryPhotos[0].image_uri : undefined;
+    const thumbnailUri =
+      entryPhotos.length > 0 ? entryPhotos[0].image_uri : undefined;
     const stop = stops.find((s) => s.id === item.stop_id);
 
     return (
@@ -199,13 +185,6 @@ export default function JournalScreen() {
           />
         </View>
       )}
-
-      <JournalFilter
-        viewMode={viewMode}
-        onViewModeChange={handleViewModeChange}
-        stopName={selectedStop?.name}
-        onClearStopFilter={() => setFilterByStop(null)}
-      />
 
       <FlatList
         data={entries}
