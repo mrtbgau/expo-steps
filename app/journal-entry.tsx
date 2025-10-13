@@ -16,16 +16,31 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function JournalEntryScreen() {
   const router = useRouter();
-  const { id, tripId } = useLocalSearchParams<{ id?: string; tripId?: string }>();
-  const { entries, photos: entryPhotosMap, createEntry, updateEntry, addPhotosToEntry, removePhotoFromEntry, isLoading } = useJournal();
+  const { id, tripId } = useLocalSearchParams<{
+    id?: string;
+    tripId?: string;
+  }>();
+  const {
+    entries,
+    photos: entryPhotosMap,
+    createEntry,
+    updateEntry,
+    addPhotosToEntry,
+    removePhotoFromEntry,
+    isLoading,
+  } = useJournal();
   const { stops } = useStops();
 
   const [title, setTitle] = useState("");
   const [entryDate, setEntryDate] = useState<Date | undefined>(new Date());
   const [content, setContent] = useState("");
   const [selectedStopId, setSelectedStopId] = useState<number | null>(null);
-  const [newPhotos, setNewPhotos] = useState<{ imageUri: string; caption?: string }[]>([]);
-  const [existingPhotos, setExistingPhotos] = useState<{ id: number; uri: string; caption?: string }[]>([]);
+  const [newPhotos, setNewPhotos] = useState<
+    { imageUri: string; caption?: string }[]
+  >([]);
+  const [existingPhotos, setExistingPhotos] = useState<
+    { id: number; uri: string; caption?: string }[]
+  >([]);
 
   const [errors, setErrors] = useState({
     title: "",
@@ -242,10 +257,7 @@ export default function JournalEntryScreen() {
                   editable={true}
                 />
               )}
-              <PhotoPicker
-                onImageSelected={handleAddPhoto}
-                label="Ajouter une photo"
-              />
+              <PhotoPicker onImageSelected={handleAddPhoto} />
             </View>
           </View>
         </ScrollView>
