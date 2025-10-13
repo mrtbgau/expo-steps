@@ -255,6 +255,11 @@ export default function TripEdit() {
     }
   };
 
+  const handleStopPress = (stop: any) => {
+    if (!trip) return;
+    router.push(`/(tabs)/map?tripId=${trip.id}`);
+  };
+
   const handleStopLongPress = (stop: any) => {
     setSelectedStop(stop);
     setIsStopActionsModalVisible(true);
@@ -422,6 +427,7 @@ export default function TripEdit() {
                             stop.longitude
                           )}
                           image={stop.image_uri}
+                          onPress={() => handleStopPress(stop)}
                           onLongPress={() => handleStopLongPress(stop)}
                         />
                       </View>
